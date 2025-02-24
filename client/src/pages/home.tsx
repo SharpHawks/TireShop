@@ -1,16 +1,11 @@
 import { useState } from "react";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { TireFilters } from "@/components/tire-filters";
 import { TireGrid } from "@/components/tire-grid";
-import { PreferencesForm } from "@/components/preferences-form";
-import { RecommendationCarousel } from "@/components/recommendation-carousel";
 import type { TireFilters as TireFiltersType, Tire } from "@shared/schema";
-import type { UserPreferences } from "@shared/types";
-import { apiRequest } from "@/lib/queryClient";
 
 export default function Home() {
   const [filters, setFilters] = useState<TireFiltersType>({});
-  const [showRecommendations, setShowRecommendations] = useState(false);
 
   // Create the query string from filters
   const getQueryString = (filters: TireFiltersType) => {
@@ -43,62 +38,31 @@ export default function Home() {
     }
   });
 
-  const { mutate: getRecommendations, data: recommendations, isPending } = useMutation({
-    mutationFn: async (preferences: UserPreferences) => {
-      try {
-        const response = await fetch('/api/recommendations', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(preferences),
-        });
-
-        if (!response.ok) {
-          throw new Error('Failed to get recommendations');
-        }
-
-        return response.json();
-      } catch (error) {
-        console.error('Error getting recommendations:', error);
-        throw error;
-      }
-    },
-  });
-
-  const handlePreferencesSubmit = (preferences: UserPreferences) => {
-    setShowRecommendations(true);
-    getRecommendations(preferences);
-  };
-
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="grid grid-cols-1 lg:grid-cols-[300px_1fr] gap-8">
-        <aside className="space-y-8">
-          <PreferencesForm onSubmit={handlePreferencesSubmit} />
-          <TireFilters filters={filters} onFilterChange={setFilters} />
-        </aside>
+    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-blue-50">
+      <div className="container mx-auto px-4 py-12">
+        <div className="text-center mb-12">
+          <h1 className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600 mb-4">
+            Find Your Perfect Tires
+          </h1>
+          <p className="text-lg text-slate-600 max-w-2xl mx-auto">
+            Browse our extensive collection of premium tires, expertly curated for every vehicle and driving style.
+          </p>
+        </div>
 
-        <main className="space-y-8">
-          {showRecommendations && (
-            <section>
-              <h2 className="text-2xl font-semibold mb-4">
-                Recommended for You
-              </h2>
-              <RecommendationCarousel
-                recommendations={recommendations || []}
-                isLoading={isPending}
-              />
-            </section>
-          )}
+        <div className="grid grid-cols-1 lg:grid-cols-[300px_1fr] gap-8">
+          <aside className="space-y-6">
+            <div className="sticky top-6">
+              <TireFilters filters={filters} onFilterChange={setFilters} />
+            </div>
+          </aside>
 
-          <section>
-            <h2 className="text-2xl font-semibold mb-4">
-              All Available Tires
-            </h2>
-            <TireGrid tires={tires} isLoading={isLoading} />
-          </section>
-        </main>
+          <main>
+            <div className="bg-white/50 backdrop-blur-sm rounded-2xl p-8 shadow-lg border border-white/20">
+              <TireGrid tires={tires} isLoading={isLoading} />
+            </div>
+          </main>
+        </div>
       </div>
     </div>
   );
