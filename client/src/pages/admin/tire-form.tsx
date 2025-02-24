@@ -35,21 +35,24 @@ export default function TireForm() {
     enabled: isEditing,
   });
 
+  // Initialize form with default values
+  const defaultValues: Partial<InsertTire> = {
+    modelId: modelId ? parseInt(modelId, 10) : undefined,
+    inStock: true,
+    season: 'summer',
+    fuelEfficiency: 'A',
+    wetGrip: 'A',
+    noiseLevel: 70,
+  };
+
   const form = useForm<InsertTire>({
     resolver: zodResolver(insertTireSchema),
-    defaultValues: tire || {
-      modelId: modelId ? parseInt(modelId) : undefined,
-      inStock: true,
-      season: 'summer',
-      fuelEfficiency: 'A',
-      wetGrip: 'A',
-      noiseLevel: 70,
-    },
+    defaultValues: tire || defaultValues,
   });
 
   const mutation = useMutation({
     mutationFn: async (data: InsertTire) => {
-      console.log("Submitting data:", data); // Debug log
+      console.log("Submitting data:", data);
       const response = await fetch(
         isEditing ? `/api/tires/${id}` : '/api/tires',
         {
@@ -73,7 +76,7 @@ export default function TireForm() {
       navigate('/admin');
     },
     onError: (error: Error) => {
-      console.error("Mutation error:", error); // Debug log
+      console.error("Mutation error:", error);
       toast({
         title: 'Error',
         description: error.message,
@@ -83,7 +86,7 @@ export default function TireForm() {
   });
 
   const onSubmit = (data: InsertTire) => {
-    console.log("Form submitted with data:", data); // Debug log
+    console.log("Form submitted with data:", data);
     mutation.mutate(data);
   };
 
@@ -137,6 +140,7 @@ export default function TireForm() {
                   <Select
                     onValueChange={field.onChange}
                     value={field.value}
+                    defaultValue={field.value}
                   >
                     <FormControl>
                       <SelectTrigger>
@@ -160,7 +164,7 @@ export default function TireForm() {
                 <FormItem>
                   <FormLabel>Image URL</FormLabel>
                   <FormControl>
-                    <Input {...field} type="url" />
+                    <Input {...field} type="url" placeholder="https://example.com/tire-image.jpg" />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -174,7 +178,7 @@ export default function TireForm() {
                 <FormItem>
                   <FormLabel>Price (in cents)</FormLabel>
                   <FormControl>
-                    <Input {...field} type="number" />
+                    <Input {...field} type="number" min="0" step="1" />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -188,7 +192,7 @@ export default function TireForm() {
                 <FormItem>
                   <FormLabel>Noise Level (dB)</FormLabel>
                   <FormControl>
-                    <Input {...field} type="number" />
+                    <Input {...field} type="number" min="0" max="120" step="1" />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -204,6 +208,7 @@ export default function TireForm() {
                   <Select
                     onValueChange={field.onChange}
                     value={field.value}
+                    defaultValue={field.value}
                   >
                     <FormControl>
                       <SelectTrigger>
@@ -232,6 +237,7 @@ export default function TireForm() {
                   <Select
                     onValueChange={field.onChange}
                     value={field.value}
+                    defaultValue={field.value}
                   >
                     <FormControl>
                       <SelectTrigger>
@@ -269,10 +275,16 @@ export default function TireForm() {
             )}
           />
 
-          <input 
-            type="hidden" 
-            {...form.register('modelId')} 
-            value={modelId} 
+          <FormField
+            control={form.control}
+            name="modelId"
+            render={({ field }) => (
+              <Input
+                type="hidden"
+                value={field.value?.toString() ?? ""}
+                onChange={(e) => field.onChange(parseInt(e.target.value, 10))}
+              />
+            )}
           />
 
           <div className="flex gap-4">
