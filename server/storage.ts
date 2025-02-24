@@ -81,7 +81,7 @@ export class DatabaseStorage implements IStorage {
       }
     }
 
-    return query;
+    return await query;
   }
 
   async getTire(id: number): Promise<Tire | undefined> {
