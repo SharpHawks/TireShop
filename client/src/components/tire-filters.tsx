@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { 
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -16,16 +16,16 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { 
-  TIRE_CODES, 
-  EFFICIENCY_RATINGS, 
+import {
+  TIRE_CODES,
+  EFFICIENCY_RATINGS,
   NOISE_RATINGS,
   TIRE_WIDTHS,
   TIRE_ASPECTS,
   TIRE_DIAMETERS
 } from "@/lib/types";
 import type { TireFilters } from "@shared/schema";
-import { Fuel, Waves, Volume2, Info } from "lucide-react";
+import { Fuel, Waves, Volume2, Info, Sun, Snowflake } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface TireFiltersProps {
@@ -63,6 +63,12 @@ const formatToStandard = (simple: string) => {
   const diameter = simple.slice(5);
   return `${width}/${aspect}R${diameter}`;
 };
+
+// Add season constant
+const TIRE_SEASONS = [
+  { value: 'summer', label: 'Summer', icon: Sun },
+  { value: 'winter', label: 'Winter', icon: Snowflake }
+] as const;
 
 export function TireFilters({ filters, onFilterChange }: TireFiltersProps) {
   const [searchValue, setSearchValue] = useState("");
@@ -147,6 +153,32 @@ export function TireFilters({ filters, onFilterChange }: TireFiltersProps) {
 
   return (
     <div className="space-y-6 p-6 bg-card rounded-lg">
+      <div className="space-y-2">
+        <Label>Season</Label>
+        <div className="grid grid-cols-2 gap-4">
+          {TIRE_SEASONS.map(({ value, label, icon: Icon }) => (
+            <div
+              key={value}
+              className={cn(
+                "flex items-center justify-center gap-2 p-3 rounded-lg cursor-pointer border-2 transition-colors",
+                filters.season === value
+                  ? "border-primary bg-primary/10"
+                  : "border-muted hover:border-primary/50"
+              )}
+              onClick={() =>
+                onFilterChange({
+                  ...filters,
+                  season: filters.season === value ? undefined : value,
+                })
+              }
+            >
+              <Icon className="h-5 w-5" />
+              <span>{label}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
       <div className="space-y-2">
         <Label>Tire Size</Label>
         <div className="grid grid-cols-3 gap-4">
@@ -267,7 +299,7 @@ export function TireFilters({ filters, onFilterChange }: TireFiltersProps) {
                         })
                       }
                     />
-                    <label 
+                    <label
                       htmlFor={`code-${code.value}`}
                       className="flex items-center gap-1 cursor-pointer"
                     >
@@ -342,12 +374,12 @@ export function TireFilters({ filters, onFilterChange }: TireFiltersProps) {
                 <div key={rating.value} className="flex items-center justify-center gap-2">
                   <Checkbox
                     id={`noise-${rating.value}`}
-                    checked={filters.maxNoiseLevel === 
+                    checked={filters.maxNoiseLevel ===
                       (rating.value === 'A' ? 70 : rating.value === 'B' ? 75 : 80)}
                     onCheckedChange={(checked) =>
                       onFilterChange({
                         ...filters,
-                        maxNoiseLevel: checked 
+                        maxNoiseLevel: checked
                           ? (rating.value === 'A' ? 70 : rating.value === 'B' ? 75 : 80)
                           : undefined,
                       })

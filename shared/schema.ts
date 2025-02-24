@@ -8,6 +8,7 @@ export const tires = pgTable("tires", {
   brand: text("brand").notNull(),
   code: text("code").notNull(), // e.g. 'MFS', 'RSC'
   size: text("size").notNull(), // e.g. '205/55R16'
+  season: text("season").notNull(), // 'summer' or 'winter'
   fuelEfficiency: text("fuel_efficiency").notNull(), // A to G rating
   wetGrip: text("wet_grip").notNull(), // A to G rating
   noiseLevel: integer("noise_level").notNull(), // in decibels
@@ -27,6 +28,7 @@ export const tireFilters = z.object({
   diameter: z.string().optional(),
   inStock: z.boolean().optional(),
   code: z.string().optional(),
+  season: z.enum(['summer', 'winter']).optional(),
   fuelEfficiency: z.string().optional(),
   wetGrip: z.string().optional(),
   maxNoiseLevel: z.number().optional(),
