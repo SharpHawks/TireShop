@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { 
   Select,
   SelectContent,
@@ -10,18 +10,6 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-} from "@/components/ui/command";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
 import {
   Tooltip,
   TooltipContent,
@@ -37,9 +25,8 @@ import {
   TIRE_DIAMETERS
 } from "@/lib/types";
 import type { TireFilters } from "@shared/schema";
-import { Fuel, Waves, Volume2, Info, Check, ChevronsUpDown } from "lucide-react";
+import { Fuel, Waves, Volume2, Info } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
 
 interface TireFiltersProps {
   filters: TireFilters;
@@ -64,8 +51,37 @@ const TIRE_SIZES = [
 ];
 
 export function TireFilters({ filters, onFilterChange }: TireFiltersProps) {
-  const [open, setOpen] = useState(false);
-  const [value, setValue] = useState("");
+  const [searchValue, setSearchValue] = useState("");
+  const [showDropdown, setShowDropdown] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  const filteredSizes = TIRE_SIZES.filter(size => 
+    size.toLowerCase().includes(searchValue.toLowerCase())
+  );
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setShowDropdown(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const handleSizeSelect = (size: string) => {
+    setSearchValue(size);
+    setShowDropdown(false);
+    const [width, rest] = size.split('/');
+    const [aspect, diameter] = rest.split('R');
+    onFilterChange({
+      ...filters,
+      width,
+      aspect,
+      diameter
+    });
+  };
 
   return (
     <div className="space-y-6 p-6 bg-card rounded-lg">
@@ -128,59 +144,37 @@ export function TireFilters({ filters, onFilterChange }: TireFiltersProps) {
         </div>
       </div>
 
-      <div className="space-y-4">
+      <div className="space-y-2 relative" ref={dropdownRef}>
         <Label>Quick Size Search</Label>
-        <Popover open={open} onOpenChange={setOpen}>
-          <PopoverTrigger asChild>
-            <Button
-              variant="outline"
-              role="combobox"
-              aria-expanded={open}
-              className="w-full justify-between"
-            >
-              {value
-                ? TIRE_SIZES.find((size) => size === value)
-                : "Search tire size..."}
-              <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-full p-0">
-            <Command>
-              <CommandInput placeholder="Search tire size..." value={value} onValueChange={setValue}/>
-              <CommandEmpty>No tire size found.</CommandEmpty>
-              <CommandGroup>
-                {TIRE_SIZES.filter(size => 
-                  !value || size.toLowerCase().includes(value.toLowerCase())
-                ).map((size) => (
-                  <CommandItem
-                    key={size}
-                    value={size}
-                    onSelect={(currentValue) => {
-                      setValue(currentValue);
-                      setOpen(false);
-                      const [width, rest] = currentValue.split('/');
-                      const [aspect, diameter] = rest.split('R');
-                      onFilterChange({
-                        ...filters,
-                        width,
-                        aspect,
-                        diameter
-                      });
-                    }}
-                  >
-                    <Check
-                      className={cn(
-                        "mr-2 h-4 w-4",
-                        value === size ? "opacity-100" : "opacity-0"
-                      )}
-                    />
-                    {size}
-                  </CommandItem>
-                ))}
-              </CommandGroup>
-            </Command>
-          </PopoverContent>
-        </Popover>
+        <Input
+          type="text"
+          placeholder="Type tire size (e.g. 205/55R16)"
+          value={searchValue}
+          onChange={(e) => {
+            setSearchValue(e.target.value);
+            setShowDropdown(true);
+          }}
+          onFocus={() => setShowDropdown(true)}
+        />
+        {showDropdown && searchValue && (
+          <div className="absolute w-full mt-1 bg-popover border rounded-md shadow-lg z-50 max-h-[200px] overflow-y-auto">
+            {filteredSizes.length > 0 ? (
+              filteredSizes.map((size) => (
+                <div
+                  key={size}
+                  className="px-4 py-2 hover:bg-accent cursor-pointer"
+                  onClick={() => handleSizeSelect(size)}
+                >
+                  {size}
+                </div>
+              ))
+            ) : (
+              <div className="px-4 py-2 text-muted-foreground">
+                No matching sizes found
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       <div className="space-y-2">
