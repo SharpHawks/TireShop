@@ -17,6 +17,7 @@ import type { Tire, Brand, Model } from "@shared/schema";
 import { TireList } from "@/components/tire-list";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient } from "@/lib/queryClient";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function SeasonalTires() {
   const { season } = useParams<{ season: string }>();
@@ -244,6 +245,10 @@ export default function SeasonalTires() {
                 onChange={(e) => setNewBrandName(e.target.value)}
                 placeholder="Enter new brand name"
               />
+            ) : isBrandsLoading ? (
+              <div className="space-y-2">
+                <Skeleton className="h-10 w-full rounded-md" />
+              </div>
             ) : (
               <Select
                 value={selectedBrand}
@@ -322,6 +327,10 @@ export default function SeasonalTires() {
                 placeholder="Enter new model name"
                 disabled={selectedBrand === "all"}
               />
+            ) : isModelsLoading ? (
+              <div className="space-y-2">
+                <Skeleton className="h-10 w-full rounded-md" />
+              </div>
             ) : (
               <Select
                 value={selectedModel}

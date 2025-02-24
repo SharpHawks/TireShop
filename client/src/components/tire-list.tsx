@@ -15,10 +15,13 @@ import {
   Trash2,
   CheckCircle,
   XCircle,
+  Copy,
+  Check,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import type { Tire, Model } from "@shared/schema";
 import { queryClient } from "@/lib/queryClient";
+import { useState } from "react";
 
 interface TireListProps {
   tires: Tire[];
@@ -28,6 +31,7 @@ interface TireListProps {
 
 export function TireList({ tires, models = [], isLoading }: TireListProps) {
   const { toast } = useToast();
+  const [copiedId, setCopiedId] = useState<number | null>(null);
 
   const deleteMutation = useMutation({
     mutationFn: async (id: number) => {
@@ -61,6 +65,35 @@ export function TireList({ tires, models = [], isLoading }: TireListProps) {
   const getModelName = (modelId: number) => {
     const model = models.find(m => m.id === modelId);
     return model ? model.name : `Model ID: ${modelId}`;
+  };
+
+  const copyTireDetails = async (tire: Tire) => {
+    const modelName = getModelName(tire.modelId);
+    const details = `Tire Details:
+Model: ${modelName}
+Size: ${tire.size}
+Price: $${(tire.price / 100).toFixed(2)}
+In Stock: ${tire.inStock ? 'Yes' : 'No'}
+Season: ${tire.season}
+Fuel Efficiency: ${tire.fuelEfficiency}
+Wet Grip: ${tire.wetGrip}
+Noise Level: ${tire.noiseLevel}dB`;
+
+    try {
+      await navigator.clipboard.writeText(details);
+      setCopiedId(tire.id);
+      toast({
+        title: "Success",
+        description: "Tire details copied to clipboard",
+      });
+      setTimeout(() => setCopiedId(null), 2000);
+    } catch (err) {
+      toast({
+        title: "Error",
+        description: "Failed to copy tire details",
+        variant: "destructive",
+      });
+    }
   };
 
   if (isLoading) {
@@ -124,6 +157,17 @@ export function TireList({ tires, models = [], isLoading }: TireListProps) {
               </TableCell>
               <TableCell>
                 <div className="flex gap-2">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => copyTireDetails(tire)}
+                  >
+                    {copiedId === tire.id ? (
+                      <Check className="h-4 w-4 text-green-500" />
+                    ) : (
+                      <Copy className="h-4 w-4" />
+                    )}
+                  </Button>
                   <Link href={`/admin/tires/${tire.id}/edit`}>
                     <Button variant="ghost" size="icon">
                       <Pencil className="h-4 w-4" />
