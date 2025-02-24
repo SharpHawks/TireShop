@@ -29,8 +29,12 @@ async function comparePasswords(supplied: string, stored: string) {
 }
 
 export function setupAuth(app: Express) {
+  if (!process.env.SESSION_SECRET) {
+    throw new Error("SESSION_SECRET environment variable is required");
+  }
+
   const sessionSettings: session.SessionOptions = {
-    secret: process.env.SESSION_SECRET!,
+    secret: process.env.SESSION_SECRET,
     resave: false,
     saveUninitialized: false,
     store: storage.sessionStore,
@@ -59,23 +63,25 @@ export function setupAuth(app: Express) {
     }),
   );
 
-  passport.serializeUser((user, done) => done(null, user.id));
-  passport.deserializeUser(async (id: number, done) => {
+  passport.serializeUser((user, done) => {
     try {
-      const user = await storage.getUser(id);
-      done(null, user);
+      done(null, user.id);
     } catch (err) {
       done(err);
     }
   });
 
-  // Middleware to check if user is admin
-  const requireAdmin = (req: Express.Request, res: Express.Response, next: Express.NextFunction) => {
-    if (!req.isAuthenticated() || !req.user.isAdmin) {
-      return res.status(403).json({ message: "Unauthorized" });
+  passport.deserializeUser(async (id: number, done) => {
+    try {
+      const user = await storage.getUser(id);
+      if (!user) {
+        return done(new Error("User not found"), null);
+      }
+      done(null, user);
+    } catch (err) {
+      done(err);
     }
-    next();
-  };
+  });
 
   // Auth routes
   app.post("/api/register", async (req, res, next) => {
@@ -114,6 +120,14 @@ export function setupAuth(app: Express) {
     if (!req.isAuthenticated()) return res.sendStatus(401);
     res.json(req.user);
   });
+
+  // Middleware to check if user is admin
+  const requireAdmin = (req: Express.Request, res: Express.Response, next: Express.NextFunction) => {
+    if (!req.isAuthenticated() || !req.user.isAdmin) {
+      return res.status(403).json({ message: "Unauthorized" });
+    }
+    next();
+  };
 
   return { requireAdmin };
 }
