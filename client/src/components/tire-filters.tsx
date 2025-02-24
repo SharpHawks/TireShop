@@ -9,6 +9,19 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+} from "@/components/ui/command";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import {
   Tooltip,
   TooltipContent,
@@ -24,16 +37,93 @@ import {
   TIRE_DIAMETERS
 } from "@/lib/types";
 import type { TireFilters } from "@shared/schema";
-import { Fuel, Waves, Volume2, Info } from "lucide-react";
+import { Fuel, Waves, Volume2, Info, Check, ChevronsUpDown } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 
 interface TireFiltersProps {
   filters: TireFilters;
   onFilterChange: (filters: TireFilters) => void;
 }
 
+const TIRE_SIZES = [
+  "205/55R16",
+  "215/55R16",
+  "225/55R16",
+  "205/60R16",
+  "215/60R16",
+  "225/45R17",
+  "235/45R17",
+  "245/45R17",
+  "225/40R18",
+  "235/40R18",
+  "245/40R18",
+  "255/35R19",
+  "265/35R19",
+  "275/35R19",
+];
+
 export function TireFilters({ filters, onFilterChange }: TireFiltersProps) {
+  const [open, setOpen] = useState(false);
+  const [value, setValue] = useState("");
+
   return (
     <div className="space-y-6 p-6 bg-card rounded-lg">
+      <div className="space-y-4">
+        <Label>Quick Size Search</Label>
+        <Popover open={open} onOpenChange={setOpen}>
+          <PopoverTrigger asChild>
+            <Button
+              variant="outline"
+              role="combobox"
+              aria-expanded={open}
+              className="w-full justify-between"
+            >
+              {value
+                ? TIRE_SIZES.find((size) => size === value)
+                : "Search tire size..."}
+              <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-full p-0">
+            <Command>
+              <CommandInput placeholder="Search tire size..." value={value} onValueChange={setValue}/>
+              <CommandEmpty>No tire size found.</CommandEmpty>
+              <CommandGroup>
+                {TIRE_SIZES.filter(size => 
+                  !value || size.toLowerCase().includes(value.toLowerCase())
+                ).map((size) => (
+                  <CommandItem
+                    key={size}
+                    value={size}
+                    onSelect={(currentValue) => {
+                      setValue(currentValue);
+                      setOpen(false);
+                      const [width, rest] = currentValue.split('/');
+                      const [aspect, diameter] = rest.split('R');
+                      onFilterChange({
+                        ...filters,
+                        width,
+                        aspect,
+                        diameter
+                      });
+                    }}
+                  >
+                    <Check
+                      className={cn(
+                        "mr-2 h-4 w-4",
+                        value === size ? "opacity-100" : "opacity-0"
+                      )}
+                    />
+                    {size}
+                  </CommandItem>
+                ))}
+              </CommandGroup>
+            </Command>
+          </PopoverContent>
+        </Popover>
+      </div>
+
       <div className="space-y-2">
         <Label>Tire Size</Label>
         <div className="grid grid-cols-3 gap-4">
