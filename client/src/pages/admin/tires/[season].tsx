@@ -47,11 +47,12 @@ export default function SeasonalTires() {
   // Filter tires based on selection and season
   const filteredTires = tires.filter(tire => {
     let matches = tire.season === season;
-    if (selectedBrand !== "all") {
+    if (selectedBrand !== "all" && selectedModel === "all") {
+      // If only brand is selected, show all tires from that brand's models
       const brandModels = models.map(model => model.id);
       matches = matches && brandModels.includes(tire.modelId);
-    }
-    if (selectedModel !== "all") {
+    } else if (selectedModel !== "all") {
+      // If model is selected, show only tires from that specific model
       matches = matches && tire.modelId === Number(selectedModel);
     }
     return matches;
@@ -150,6 +151,12 @@ export default function SeasonalTires() {
     });
   };
 
+  // Reset model selection when brand changes
+  const handleBrandChange = (value: string) => {
+    setSelectedBrand(value);
+    setSelectedModel("all");
+  };
+
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="mb-8">
@@ -234,10 +241,7 @@ export default function SeasonalTires() {
             ) : (
               <Select
                 value={selectedBrand}
-                onValueChange={(value) => {
-                  setSelectedBrand(value);
-                  setSelectedModel("all"); // Reset model selection when brand changes
-                }}
+                onValueChange={handleBrandChange}
               >
                 <SelectTrigger className="w-full">
                   <SelectValue placeholder="Choose a brand" />
@@ -340,7 +344,8 @@ export default function SeasonalTires() {
       </Card>
 
       <TireList 
-        tires={filteredTires} 
+        tires={filteredTires}
+        models={models}
         isLoading={isTiresLoading || isBrandsLoading || (selectedBrand !== "all" && isModelsLoading)} 
       />
     </div>
