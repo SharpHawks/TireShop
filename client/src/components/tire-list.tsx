@@ -17,15 +17,16 @@ import {
   XCircle,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import type { Tire } from "@shared/schema";
+import type { Tire, Model } from "@shared/schema";
 import { queryClient } from "@/lib/queryClient";
 
 interface TireListProps {
   tires: Tire[];
+  models?: Model[];
   isLoading?: boolean;
 }
 
-export function TireList({ tires, isLoading }: TireListProps) {
+export function TireList({ tires, models = [], isLoading }: TireListProps) {
   const { toast } = useToast();
 
   const deleteMutation = useMutation({
@@ -55,6 +56,11 @@ export function TireList({ tires, isLoading }: TireListProps) {
     if (confirm("Are you sure you want to delete this tire?")) {
       deleteMutation.mutate(id);
     }
+  };
+
+  const getModelName = (modelId: number) => {
+    const model = models.find(m => m.id === modelId);
+    return model ? model.name : `Model ID: ${modelId}`;
   };
 
   if (isLoading) {
@@ -106,7 +112,7 @@ export function TireList({ tires, isLoading }: TireListProps) {
         <TableBody>
           {tires.map((tire) => (
             <TableRow key={tire.id}>
-              <TableCell>{tire.modelId}</TableCell>
+              <TableCell>{getModelName(tire.modelId)}</TableCell>
               <TableCell>{tire.size}</TableCell>
               <TableCell>${(tire.price / 100).toFixed(2)}</TableCell>
               <TableCell>

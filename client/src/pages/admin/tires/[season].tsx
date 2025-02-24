@@ -1,5 +1,5 @@
 import { useParams } from "wouter";
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import {
   Select,
@@ -29,36 +29,33 @@ export default function SeasonalTires() {
   const [newModelName, setNewModelName] = useState("");
 
   // Fetch brands
-  const { data: brands = [] } = useQuery<Brand[]>({
+  const { data: brands = [], isLoading: isBrandsLoading } = useQuery<Brand[]>({
     queryKey: ["/api/brands"],
   });
 
   // Fetch models for selected brand
-  const { data: models = [] } = useQuery<Model[]>({
+  const { data: models = [], isLoading: isModelsLoading } = useQuery<Model[]>({
     queryKey: ["/api/brands", selectedBrand, "models"],
     enabled: selectedBrand !== "all",
   });
 
   // Fetch tires
-  const { data: tires = [] } = useQuery<Tire[]>({
+  const { data: tires = [], isLoading: isTiresLoading } = useQuery<Tire[]>({
     queryKey: ["/api/tires"],
   });
 
   // Filter tires based on selection and season
-  const filteredTires = useMemo(() => {
-    let filtered = tires.filter(tire => tire.season === season);
+  const filteredTires = tires.filter(tire => {
+    let matches = tire.season === season;
     if (selectedBrand !== "all") {
-      filtered = filtered.filter(tire => 
-        models.some(model => 
-          model.brandId === Number(selectedBrand) && model.id === tire.modelId
-        )
-      );
+      const brandModels = models.map(model => model.id);
+      matches = matches && brandModels.includes(tire.modelId);
     }
     if (selectedModel !== "all") {
-      filtered = filtered.filter(tire => tire.modelId === Number(selectedModel));
+      matches = matches && tire.modelId === Number(selectedModel);
     }
-    return filtered;
-  }, [tires, season, selectedBrand, selectedModel, models]);
+    return matches;
+  });
 
   // Brand mutations
   const createBrandMutation = useMutation({
@@ -237,9 +234,12 @@ export default function SeasonalTires() {
             ) : (
               <Select
                 value={selectedBrand}
-                onValueChange={setSelectedBrand}
+                onValueChange={(value) => {
+                  setSelectedBrand(value);
+                  setSelectedModel("all"); // Reset model selection when brand changes
+                }}
               >
-                <SelectTrigger>
+                <SelectTrigger className="w-full">
                   <SelectValue placeholder="Choose a brand" />
                 </SelectTrigger>
                 <SelectContent>
@@ -339,7 +339,10 @@ export default function SeasonalTires() {
         </div>
       </Card>
 
-      <TireList tires={filteredTires} />
+      <TireList 
+        tires={filteredTires} 
+        isLoading={isTiresLoading || isBrandsLoading || (selectedBrand !== "all" && isModelsLoading)} 
+      />
     </div>
   );
 }
