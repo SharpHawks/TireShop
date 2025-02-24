@@ -105,8 +105,9 @@ export class MemStorage implements IStorage {
         });
       }
 
-      if (filters.inStock !== undefined) {
-        tires = tires.filter((t) => t.inStock === filters.inStock);
+      // Only filter for inStock when it's explicitly set to true
+      if (filters.inStock === true) {
+        tires = tires.filter((t) => t.inStock === true);
       }
       if (filters.code) {
         tires = tires.filter((t) => t.code === filters.code);
