@@ -1,11 +1,16 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { TireFilters } from "@/components/tire-filters";
 import { TireGrid } from "@/components/tire-grid";
+import { PreferencesForm } from "@/components/preferences-form";
+import { RecommendationCarousel } from "@/components/recommendation-carousel";
 import type { TireFilters as TireFiltersType, Tire } from "@shared/schema";
+import type { UserPreferences } from "@shared/types";
+import { apiRequest } from "@/lib/queryClient";
 
 export default function Home() {
   const [filters, setFilters] = useState<TireFiltersType>({});
+  const [showRecommendations, setShowRecommendations] = useState(false);
 
   // Create the query string from filters
   const getQueryString = (filters: TireFiltersType) => {
@@ -38,18 +43,48 @@ export default function Home() {
     }
   });
 
+  const { mutate: getRecommendations, data: recommendations, isPending } = useMutation({
+    mutationFn: async (preferences: UserPreferences) => {
+      const response = await apiRequest("/api/recommendations", {
+        method: "POST",
+        body: JSON.stringify(preferences),
+      });
+      return response.json();
+    },
+  });
+
+  const handlePreferencesSubmit = (preferences: UserPreferences) => {
+    setShowRecommendations(true);
+    getRecommendations(preferences);
+  };
+
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="grid grid-cols-1 lg:grid-cols-[300px_1fr] gap-8">
-        <aside>
+        <aside className="space-y-8">
+          <PreferencesForm onSubmit={handlePreferencesSubmit} />
           <TireFilters filters={filters} onFilterChange={setFilters} />
         </aside>
 
-        <main>
-          <h1 className="text-3xl font-bold mb-8">
-            Premium Tires for Every Vehicle
-          </h1>
-          <TireGrid tires={tires} isLoading={isLoading} />
+        <main className="space-y-8">
+          {showRecommendations && (
+            <section>
+              <h2 className="text-2xl font-semibold mb-4">
+                Recommended for You
+              </h2>
+              <RecommendationCarousel
+                recommendations={recommendations || []}
+                isLoading={isPending}
+              />
+            </section>
+          )}
+
+          <section>
+            <h2 className="text-2xl font-semibold mb-4">
+              All Available Tires
+            </h2>
+            <TireGrid tires={tires} isLoading={isLoading} />
+          </section>
         </main>
       </div>
     </div>

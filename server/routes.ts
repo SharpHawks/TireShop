@@ -2,6 +2,7 @@ import type { Express } from "express";
 import { createServer } from "http";
 import { storage } from "./storage";
 import { tireFilters } from "@shared/schema";
+import { getTireRecommendations } from "./services/recommendations";
 
 export async function registerRoutes(app: Express) {
   app.get("/api/tires", async (req, res) => {
@@ -31,6 +32,18 @@ export async function registerRoutes(app: Express) {
     }
 
     res.json(tire);
+  });
+
+  app.post("/api/recommendations", async (req, res) => {
+    try {
+      const userPreferences = req.body;
+      const availableTires = await storage.getTires({});
+      const recommendations = await getTireRecommendations(userPreferences, availableTires);
+      res.json(recommendations);
+    } catch (error) {
+      console.error('Error getting recommendations:', error);
+      res.status(500).json({ error: 'Failed to get recommendations' });
+    }
   });
 
   return createServer(app);
