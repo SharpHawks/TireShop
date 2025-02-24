@@ -49,7 +49,30 @@ export class MemStorage implements IStorage {
         inStock: true,
         imageUrl: mockImages[1],
       },
-      // Add more mock tires...
+      {
+        name: "PilotSport",
+        brand: "Michelin",
+        code: "XL",
+        size: "245/40R18",
+        fuelEfficiency: "C",
+        wetGrip: "B",
+        noiseLevel: 71,
+        price: 18999,
+        inStock: false,
+        imageUrl: mockImages[2],
+      },
+      {
+        name: "P Zero",
+        brand: "Pirelli",
+        code: "SOUND",
+        size: "255/35R19",
+        fuelEfficiency: "B",
+        wetGrip: "A",
+        noiseLevel: 69,
+        price: 21999,
+        inStock: true,
+        imageUrl: mockImages[3],
+      },
     ];
 
     mockTires.forEach((tire) => {
@@ -62,11 +85,22 @@ export class MemStorage implements IStorage {
     let tires = Array.from(this.tires.values());
 
     if (filters) {
+      // Filter by size components
       if (filters.width || filters.aspect || filters.diameter) {
-        const sizePattern = `${filters.width || '\\d+'}/${filters.aspect || '\\d+'}R${filters.diameter || '\\d+'}`;
-        const sizeRegex = new RegExp(sizePattern);
-        tires = tires.filter((t) => sizeRegex.test(t.size));
+        tires = tires.filter((tire) => {
+          // Parse size string (format: "205/55R16")
+          const [width, rest] = tire.size.split('/');
+          const [aspect, diameter] = rest.split('R');
+
+          // Match individual components if specified
+          if (filters.width && width !== filters.width) return false;
+          if (filters.aspect && aspect !== filters.aspect) return false;
+          if (filters.diameter && diameter !== filters.diameter) return false;
+
+          return true;
+        });
       }
+
       if (filters.inStock !== undefined) {
         tires = tires.filter((t) => t.inStock === filters.inStock);
       }
@@ -80,7 +114,7 @@ export class MemStorage implements IStorage {
         tires = tires.filter((t) => t.wetGrip === filters.wetGrip);
       }
       if (filters.maxNoiseLevel) {
-        tires = tires.filter((t) => t.noiseLevel <= filters.maxNoiseLevel);
+        tires = tires.filter((t) => t.noiseLevel <= filters.maxNoiseLevel!);
       }
     }
 
