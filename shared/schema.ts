@@ -22,6 +22,9 @@ export type InsertTire = z.infer<typeof insertTireSchema>;
 export type Tire = typeof tires.$inferSelect;
 
 export const tireFilters = z.object({
+  width: z.string().optional(),
+  aspect: z.string().optional(),
+  diameter: z.string().optional(),
   inStock: z.boolean().optional(),
   code: z.string().optional(),
   fuelEfficiency: z.string().optional(),

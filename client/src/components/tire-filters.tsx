@@ -15,7 +15,14 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { TIRE_CODES, EFFICIENCY_RATINGS, NOISE_RATINGS } from "@/lib/types";
+import { 
+  TIRE_CODES, 
+  EFFICIENCY_RATINGS, 
+  NOISE_RATINGS,
+  TIRE_WIDTHS,
+  TIRE_ASPECTS,
+  TIRE_DIAMETERS
+} from "@/lib/types";
 import type { TireFilters } from "@shared/schema";
 import { Fuel, Waves, Volume2, Info } from "lucide-react";
 
@@ -27,6 +34,65 @@ interface TireFiltersProps {
 export function TireFilters({ filters, onFilterChange }: TireFiltersProps) {
   return (
     <div className="space-y-6 p-6 bg-card rounded-lg">
+      <div className="space-y-2">
+        <Label>Tire Size</Label>
+        <div className="grid grid-cols-3 gap-4">
+          <Select
+            value={filters.width}
+            onValueChange={(value) =>
+              onFilterChange({ ...filters, width: value })
+            }
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Width" />
+            </SelectTrigger>
+            <SelectContent>
+              {TIRE_WIDTHS.map((width) => (
+                <SelectItem key={width.value} value={width.value}>
+                  {width.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          <Select
+            value={filters.aspect}
+            onValueChange={(value) =>
+              onFilterChange({ ...filters, aspect: value })
+            }
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Aspect" />
+            </SelectTrigger>
+            <SelectContent>
+              {TIRE_ASPECTS.map((aspect) => (
+                <SelectItem key={aspect.value} value={aspect.value}>
+                  {aspect.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          <Select
+            value={filters.diameter}
+            onValueChange={(value) =>
+              onFilterChange({ ...filters, diameter: value })
+            }
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Diameter" />
+            </SelectTrigger>
+            <SelectContent>
+              {TIRE_DIAMETERS.map((diameter) => (
+                <SelectItem key={diameter.value} value={diameter.value}>
+                  {diameter.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
       <div className="space-y-2">
         <Label>Availability</Label>
         <div className="flex items-center gap-2">

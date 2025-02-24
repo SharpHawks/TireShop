@@ -62,6 +62,11 @@ export class MemStorage implements IStorage {
     let tires = Array.from(this.tires.values());
 
     if (filters) {
+      if (filters.width || filters.aspect || filters.diameter) {
+        const sizePattern = `${filters.width || '\\d+'}/${filters.aspect || '\\d+'}R${filters.diameter || '\\d+'}`;
+        const sizeRegex = new RegExp(sizePattern);
+        tires = tires.filter((t) => sizeRegex.test(t.size));
+      }
       if (filters.inStock !== undefined) {
         tires = tires.filter((t) => t.inStock === filters.inStock);
       }
