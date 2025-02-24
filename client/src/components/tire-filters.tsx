@@ -7,9 +7,10 @@ import {
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { Slider } from "@/components/ui/slider";
+import { Checkbox } from "@/components/ui/checkbox";
 import { TIRE_CODES, EFFICIENCY_RATINGS } from "@/lib/types";
 import type { TireFilters } from "@shared/schema";
+import { Fuel, Waves, Volume2 } from "lucide-react";
 
 interface TireFiltersProps {
   filters: TireFilters;
@@ -53,59 +54,81 @@ export function TireFilters({ filters, onFilterChange }: TireFiltersProps) {
         </Select>
       </div>
 
-      <div className="space-y-2">
-        <Label>Fuel Efficiency</Label>
-        <Select
-          value={filters.fuelEfficiency}
-          onValueChange={(value) =>
-            onFilterChange({ ...filters, fuelEfficiency: value })
-          }
-        >
-          <SelectTrigger>
-            <SelectValue placeholder="Select rating" />
-          </SelectTrigger>
-          <SelectContent>
+      <div className="space-y-4">
+        <div className="space-y-2">
+          <div className="flex items-center gap-2">
+            <Fuel className="h-5 w-5" />
+            <Label>Fuel Efficiency</Label>
+          </div>
+          <div className="grid grid-cols-3 gap-4">
             {EFFICIENCY_RATINGS.map((rating) => (
-              <SelectItem key={rating.value} value={rating.value}>
-                {rating.label}
-              </SelectItem>
+              <div key={rating.value} className="flex items-center gap-2">
+                <Checkbox
+                  id={`fuel-${rating.value}`}
+                  checked={filters.fuelEfficiency === rating.value}
+                  onCheckedChange={(checked) =>
+                    onFilterChange({
+                      ...filters,
+                      fuelEfficiency: checked ? rating.value : undefined,
+                    })
+                  }
+                />
+                <label htmlFor={`fuel-${rating.value}`}>{rating.label}</label>
+              </div>
             ))}
-          </SelectContent>
-        </Select>
-      </div>
+          </div>
+        </div>
 
-      <div className="space-y-2">
-        <Label>Wet Grip Rating</Label>
-        <Select
-          value={filters.wetGrip}
-          onValueChange={(value) =>
-            onFilterChange({ ...filters, wetGrip: value })
-          }
-        >
-          <SelectTrigger>
-            <SelectValue placeholder="Select rating" />
-          </SelectTrigger>
-          <SelectContent>
+        <div className="space-y-2">
+          <div className="flex items-center gap-2">
+            <Waves className="h-5 w-5" />
+            <Label>Wet Grip</Label>
+          </div>
+          <div className="grid grid-cols-3 gap-4">
             {EFFICIENCY_RATINGS.map((rating) => (
-              <SelectItem key={rating.value} value={rating.value}>
-                {rating.label}
-              </SelectItem>
+              <div key={rating.value} className="flex items-center gap-2">
+                <Checkbox
+                  id={`grip-${rating.value}`}
+                  checked={filters.wetGrip === rating.value}
+                  onCheckedChange={(checked) =>
+                    onFilterChange({
+                      ...filters,
+                      wetGrip: checked ? rating.value : undefined,
+                    })
+                  }
+                />
+                <label htmlFor={`grip-${rating.value}`}>{rating.label}</label>
+              </div>
             ))}
-          </SelectContent>
-        </Select>
-      </div>
+          </div>
+        </div>
 
-      <div className="space-y-2">
-        <Label>Maximum Noise Level (dB)</Label>
-        <Slider
-          value={[filters.maxNoiseLevel || 80]}
-          min={60}
-          max={80}
-          step={1}
-          onValueChange={([value]) =>
-            onFilterChange({ ...filters, maxNoiseLevel: value })
-          }
-        />
+        <div className="space-y-2">
+          <div className="flex items-center gap-2">
+            <Volume2 className="h-5 w-5" />
+            <Label>Noise Level</Label>
+          </div>
+          <div className="grid grid-cols-3 gap-4">
+            {EFFICIENCY_RATINGS.map((rating) => (
+              <div key={rating.value} className="flex items-center gap-2">
+                <Checkbox
+                  id={`noise-${rating.value}`}
+                  checked={filters.maxNoiseLevel === 70 + 
+                    (rating.value === 'A' ? 0 : rating.value === 'B' ? 5 : 10)}
+                  onCheckedChange={(checked) =>
+                    onFilterChange({
+                      ...filters,
+                      maxNoiseLevel: checked 
+                        ? 70 + (rating.value === 'A' ? 0 : rating.value === 'B' ? 5 : 10)
+                        : undefined,
+                    })
+                  }
+                />
+                <label htmlFor={`noise-${rating.value}`}>{rating.label}</label>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
     </div>
   );
