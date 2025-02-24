@@ -2,12 +2,12 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { TireFilters } from "@/components/tire-filters";
 import { TireGrid } from "@/components/tire-grid";
-import type { TireFilters as TireFiltersType } from "@shared/schema";
+import type { TireFilters as TireFiltersType, Tire } from "@shared/schema";
 
 export default function Home() {
   const [filters, setFilters] = useState<TireFiltersType>({});
 
-  const { data: tires = [], isLoading } = useQuery({
+  const { data: tires = [], isLoading } = useQuery<Tire[]>({
     queryKey: ["/api/tires", filters],
   });
 
