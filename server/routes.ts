@@ -3,9 +3,27 @@ import { createServer } from "http";
 import { storage } from "./storage";
 import { tireFilters, insertTireSchema, insertBrandSchema, insertModelSchema } from "@shared/schema";
 import { setupAuth } from "./auth";
+import { getHealthMonitor } from "./services/health";
 
 export async function registerRoutes(app: Express) {
   const { requireAdmin } = setupAuth(app);
+
+  // Add health check endpoint
+  app.get("/api/health/database", requireAdmin, async (req, res) => {
+    const monitor = getHealthMonitor();
+    if (!monitor) {
+      res.status(500).json({ error: "Health monitoring not initialized" });
+      return;
+    }
+
+    try {
+      const health = await monitor.checkHealth();
+      res.json(health);
+    } catch (error) {
+      console.error('Error checking database health:', error);
+      res.status(500).json({ error: 'Failed to check database health' });
+    }
+  });
 
   // Brand management routes
   app.get("/api/brands", async (req, res) => {
