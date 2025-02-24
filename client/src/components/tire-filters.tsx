@@ -162,7 +162,7 @@ export function TireFilters({ filters, onFilterChange }: TireFiltersProps) {
     switch (e.key) {
       case 'ArrowDown':
         e.preventDefault();
-        setSelectedIndex(prev => 
+        setSelectedIndex(prev =>
           prev < filteredSizes.length - 1 ? prev + 1 : prev
         );
         break;
@@ -228,7 +228,7 @@ export function TireFilters({ filters, onFilterChange }: TireFiltersProps) {
             <SelectTrigger className="h-11">
               <SelectValue placeholder="Width" />
             </SelectTrigger>
-            <SelectContent position="popper">
+            <SelectContent sideOffset={4} position="popper" className="z-50">
               {TIRE_WIDTHS.map((width) => (
                 <SelectItem key={width.value} value={width.value}>
                   {width.label}
@@ -246,7 +246,7 @@ export function TireFilters({ filters, onFilterChange }: TireFiltersProps) {
             <SelectTrigger className="h-11">
               <SelectValue placeholder="Aspect" />
             </SelectTrigger>
-            <SelectContent position="popper">
+            <SelectContent sideOffset={4} position="popper" className="z-50">
               {TIRE_ASPECTS.map((aspect) => (
                 <SelectItem key={aspect.value} value={aspect.value}>
                   {aspect.label}
@@ -264,7 +264,7 @@ export function TireFilters({ filters, onFilterChange }: TireFiltersProps) {
             <SelectTrigger className="h-11">
               <SelectValue placeholder="Diameter" />
             </SelectTrigger>
-            <SelectContent position="popper">
+            <SelectContent sideOffset={4} position="popper" className="z-50">
               {TIRE_DIAMETERS.map((diameter) => (
                 <SelectItem key={diameter.value} value={diameter.value}>
                   {diameter.label}
