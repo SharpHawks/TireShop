@@ -26,7 +26,7 @@ export interface IStorage {
   deleteBrand(id: number): Promise<boolean>;
 
   // Model operations
-  getModels(brandId: number): Promise<Model[]>;
+  getModels(brandId?: number): Promise<Model[]>;
   getModel(id: number): Promise<Model | undefined>;
   createModel(model: InsertModel): Promise<Model>;
   updateModel(id: number, model: Partial<InsertModel>): Promise<Model | undefined>;
@@ -159,12 +159,14 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Model operations
-  async getModels(brandId: number): Promise<Model[]> {
-    return db
-      .select()
-      .from(models)
-      .where(eq(models.brandId, brandId))
-      .orderBy(desc(models.name));
+  async getModels(brandId?: number): Promise<Model[]> {
+    let query = db.select().from(models).orderBy(desc(models.name));
+
+    if (brandId !== undefined) {
+      query = query.where(eq(models.brandId, brandId));
+    }
+
+    return await query;
   }
 
   async getModel(id: number): Promise<Model | undefined> {
