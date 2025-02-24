@@ -36,7 +36,6 @@ export default function SeasonalTires() {
   // Fetch all models
   const { data: allModels = [], isLoading: isModelsLoading } = useQuery<Model[]>({
     queryKey: ["/api/models"],
-    enabled: selectedBrand !== "all",
   });
 
   // Filter models for selected brand
@@ -160,6 +159,8 @@ export default function SeasonalTires() {
   const handleBrandChange = (value: string) => {
     setSelectedBrand(value);
     setSelectedModel("all");
+    console.log('Selected brand:', value);
+    console.log('Available models:', allModels.filter(model => model.brandId === Number(value)));
   };
 
   return (
