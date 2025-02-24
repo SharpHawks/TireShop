@@ -6,7 +6,7 @@ import { NavBar } from "./components/nav-bar";
 import { AuthProvider } from "@/hooks/use-auth";
 import { ProtectedRoute } from "@/components/protected-route";
 import Home from "./pages/home";
-import Admin from "./pages/admin";
+import AdminDashboard from "./pages/admin/dashboard";
 import Auth from "./pages/auth";
 import TireForm from "./pages/admin/tire-form";
 import SeasonalTires from "./pages/admin/tires/[season]";
@@ -19,7 +19,7 @@ function Router() {
       <Route path="/auth" component={Auth} />
       <ProtectedRoute
         path="/admin"
-        component={Admin}
+        component={AdminDashboard}
         requireAdmin
       />
       <ProtectedRoute
