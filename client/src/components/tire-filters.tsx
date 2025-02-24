@@ -104,11 +104,43 @@ export function TireFilters({ filters, onFilterChange }: TireFiltersProps) {
     setSearchValue(value);
     setShowDropdown(true);
 
+    // Clear size filters if input is empty
+    if (!value) {
+      onFilterChange({
+        ...filters,
+        width: undefined,
+        aspect: undefined,
+        diameter: undefined
+      });
+      return;
+    }
+
     // If input matches the simple format exactly, try to convert and apply
     if (/^\d{7}$/.test(value)) {
       const standardSize = formatToStandard(value);
       if (standardSize && TIRE_SIZES.includes(standardSize)) {
         handleSizeSelect(standardSize);
+      }
+    } else if (value.length < 7) {
+      // If we have a partial number, try to match the width
+      if (/^\d{1,3}$/.test(value)) {
+        onFilterChange({
+          ...filters,
+          width: value.padStart(3, '0'),
+          aspect: undefined,
+          diameter: undefined
+        });
+      }
+      // If we have more digits, try to match width and aspect
+      else if (/^\d{4,5}$/.test(value)) {
+        const width = value.slice(0, 3);
+        const aspect = value.slice(3).padStart(2, '0');
+        onFilterChange({
+          ...filters,
+          width,
+          aspect,
+          diameter: undefined
+        });
       }
     }
   };
