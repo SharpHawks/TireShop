@@ -184,17 +184,22 @@ export function TireFilters({ filters, onFilterChange }: TireFiltersProps) {
   };
 
   return (
-    <div className="space-y-6 p-6 bg-card rounded-lg">
-      <div className="space-y-2">
-        <Label>Season</Label>
+    <div className="space-y-8 p-8 bg-card rounded-xl shadow-lg border">
+      <div className="space-y-4">
+        <h2 className="text-2xl font-semibold">Filter Tires</h2>
+        <div className="h-px bg-border" />
+      </div>
+
+      <div className="space-y-3">
+        <Label className="text-lg">Season</Label>
         <div className="grid grid-cols-2 gap-4">
           {TIRE_SEASONS.map(({ value, label, icon: Icon }) => (
             <div
               key={value}
               className={cn(
-                "flex items-center justify-center gap-2 p-3 rounded-lg cursor-pointer border-2 transition-colors",
+                "flex items-center justify-center gap-3 p-4 rounded-lg cursor-pointer border-2 transition-all hover:shadow-md",
                 filters.season === value
-                  ? "border-primary bg-primary/10"
+                  ? "border-primary bg-primary/10 shadow-inner"
                   : "border-muted hover:border-primary/50"
               )}
               onClick={() =>
@@ -204,15 +209,15 @@ export function TireFilters({ filters, onFilterChange }: TireFiltersProps) {
                 })
               }
             >
-              <Icon className="h-5 w-5" />
-              <span>{label}</span>
+              <Icon className="h-6 w-6" />
+              <span className="font-medium">{label}</span>
             </div>
           ))}
         </div>
       </div>
 
-      <div className="space-y-2">
-        <Label>Tire Size</Label>
+      <div className="space-y-3">
+        <Label className="text-lg">Tire Size</Label>
         <div className="grid grid-cols-3 gap-4">
           <Select
             value={filters.width}
@@ -220,10 +225,10 @@ export function TireFilters({ filters, onFilterChange }: TireFiltersProps) {
               onFilterChange({ ...filters, width: value })
             }
           >
-            <SelectTrigger>
+            <SelectTrigger className="h-11">
               <SelectValue placeholder="Width" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent position="popper">
               {TIRE_WIDTHS.map((width) => (
                 <SelectItem key={width.value} value={width.value}>
                   {width.label}
@@ -238,10 +243,10 @@ export function TireFilters({ filters, onFilterChange }: TireFiltersProps) {
               onFilterChange({ ...filters, aspect: value })
             }
           >
-            <SelectTrigger>
+            <SelectTrigger className="h-11">
               <SelectValue placeholder="Aspect" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent position="popper">
               {TIRE_ASPECTS.map((aspect) => (
                 <SelectItem key={aspect.value} value={aspect.value}>
                   {aspect.label}
@@ -256,10 +261,10 @@ export function TireFilters({ filters, onFilterChange }: TireFiltersProps) {
               onFilterChange({ ...filters, diameter: value })
             }
           >
-            <SelectTrigger>
+            <SelectTrigger className="h-11">
               <SelectValue placeholder="Diameter" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent position="popper">
               {TIRE_DIAMETERS.map((diameter) => (
                 <SelectItem key={diameter.value} value={diameter.value}>
                   {diameter.label}
@@ -270,8 +275,8 @@ export function TireFilters({ filters, onFilterChange }: TireFiltersProps) {
         </div>
       </div>
 
-      <div className="space-y-2 relative" ref={dropdownRef}>
-        <Label>Quick Size Search</Label>
+      <div className="space-y-3 relative" ref={dropdownRef}>
+        <Label className="text-lg">Quick Size Search</Label>
         <Input
           type="text"
           placeholder="Type tire size (e.g. 2055516)"
@@ -281,17 +286,18 @@ export function TireFilters({ filters, onFilterChange }: TireFiltersProps) {
           onFocus={() => {
             if (searchValue) setShowDropdown(true);
           }}
+          className="h-11"
         />
         {showDropdown && searchValue && (
-          <div className="absolute w-full mt-1 bg-popover border rounded-md shadow-lg z-50 max-h-[200px] overflow-y-auto">
+          <div className="absolute w-full mt-1 bg-popover border rounded-lg shadow-lg z-50 max-h-[200px] overflow-y-auto">
             {filteredSizes.length > 0 ? (
               filteredSizes.map((size, index) => (
                 <div
                   key={size}
                   ref={index === selectedIndex ? selectedItemRef : null}
                   className={cn(
-                    "px-4 py-2 cursor-pointer",
-                    index === selectedIndex ? "bg-accent" : "hover:bg-accent"
+                    "px-4 py-3 cursor-pointer transition-colors",
+                    index === selectedIndex ? "bg-accent text-accent-foreground" : "hover:bg-accent/50"
                   )}
                   onClick={() => handleSizeSelect(size)}
                 >
@@ -299,7 +305,7 @@ export function TireFilters({ filters, onFilterChange }: TireFiltersProps) {
                 </div>
               ))
             ) : (
-              <div className="px-4 py-2 text-muted-foreground">
+              <div className="px-4 py-3 text-muted-foreground">
                 No matching sizes found
               </div>
             )}
@@ -307,27 +313,27 @@ export function TireFilters({ filters, onFilterChange }: TireFiltersProps) {
         )}
       </div>
 
-      <div className="space-y-2">
-        <Label>Availability</Label>
-        <div className="flex items-center gap-2">
+      <div className="space-y-3">
+        <Label className="text-lg">Availability</Label>
+        <div className="flex items-center gap-3 p-4 bg-accent/20 rounded-lg">
           <Switch
             checked={filters.inStock}
             onCheckedChange={(checked) =>
               onFilterChange({ ...filters, inStock: checked })
             }
           />
-          <span>In Stock Only</span>
+          <span className="font-medium">In Stock Only</span>
         </div>
       </div>
 
       <div className="space-y-4">
-        <Label>Tire Codes</Label>
+        <Label className="text-lg">Tire Codes</Label>
         <div className="grid grid-cols-2 gap-4">
           {TIRE_CODES.map((code) => (
             <TooltipProvider key={code.value}>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-3 p-3 bg-accent/20 rounded-lg">
                     <Checkbox
                       id={`code-${code.value}`}
                       checked={filters.code === code.value}
@@ -340,7 +346,7 @@ export function TireFilters({ filters, onFilterChange }: TireFiltersProps) {
                     />
                     <label
                       htmlFor={`code-${code.value}`}
-                      className="flex items-center gap-1 cursor-pointer"
+                      className="flex items-center gap-2 cursor-pointer"
                     >
                       {code.label}
                       <Info className="h-4 w-4 text-muted-foreground" />
@@ -356,15 +362,16 @@ export function TireFilters({ filters, onFilterChange }: TireFiltersProps) {
         </div>
       </div>
 
-      <div className="bg-accent/50 p-4 rounded-lg">
+      <div className="bg-accent/20 p-6 rounded-lg space-y-6">
         <div className="grid grid-cols-3 gap-8">
           <div className="space-y-4">
             <div className="flex flex-col items-center">
-              <Fuel className="h-8 w-8" />
+              <Fuel className="h-8 w-8 text-primary" />
+              <span className="mt-2 font-medium">Fuel Efficiency</span>
             </div>
-            <div className="space-y-2">
+            <div className="space-y-3">
               {EFFICIENCY_RATINGS.map((rating) => (
-                <div key={rating.value} className="flex items-center justify-center gap-2">
+                <div key={rating.value} className="flex items-center justify-center gap-3">
                   <Checkbox
                     id={`fuel-${rating.value}`}
                     checked={filters.fuelEfficiency === rating.value}
@@ -375,7 +382,7 @@ export function TireFilters({ filters, onFilterChange }: TireFiltersProps) {
                       })
                     }
                   />
-                  <label htmlFor={`fuel-${rating.value}`}>{rating.label}</label>
+                  <label htmlFor={`fuel-${rating.value}`} className="font-medium">{rating.label}</label>
                 </div>
               ))}
             </div>
@@ -383,11 +390,12 @@ export function TireFilters({ filters, onFilterChange }: TireFiltersProps) {
 
           <div className="space-y-4">
             <div className="flex flex-col items-center">
-              <Waves className="h-8 w-8" />
+              <Waves className="h-8 w-8 text-primary" />
+              <span className="mt-2 font-medium">Wet Grip</span>
             </div>
-            <div className="space-y-2">
+            <div className="space-y-3">
               {EFFICIENCY_RATINGS.map((rating) => (
-                <div key={rating.value} className="flex items-center justify-center gap-2">
+                <div key={rating.value} className="flex items-center justify-center gap-3">
                   <Checkbox
                     id={`grip-${rating.value}`}
                     checked={filters.wetGrip === rating.value}
@@ -398,7 +406,7 @@ export function TireFilters({ filters, onFilterChange }: TireFiltersProps) {
                       })
                     }
                   />
-                  <label htmlFor={`grip-${rating.value}`}>{rating.label}</label>
+                  <label htmlFor={`grip-${rating.value}`} className="font-medium">{rating.label}</label>
                 </div>
               ))}
             </div>
@@ -406,11 +414,12 @@ export function TireFilters({ filters, onFilterChange }: TireFiltersProps) {
 
           <div className="space-y-4">
             <div className="flex flex-col items-center">
-              <Volume2 className="h-8 w-8" />
+              <Volume2 className="h-8 w-8 text-primary" />
+              <span className="mt-2 font-medium">Noise Level</span>
             </div>
-            <div className="space-y-2">
+            <div className="space-y-3">
               {NOISE_RATINGS.map((rating) => (
-                <div key={rating.value} className="flex items-center justify-center gap-2">
+                <div key={rating.value} className="flex items-center justify-center gap-3">
                   <Checkbox
                     id={`noise-${rating.value}`}
                     checked={filters.maxNoiseLevel ===
@@ -424,7 +433,7 @@ export function TireFilters({ filters, onFilterChange }: TireFiltersProps) {
                       })
                     }
                   />
-                  <label htmlFor={`noise-${rating.value}`}>{rating.label}</label>
+                  <label htmlFor={`noise-${rating.value}`} className="font-medium">{rating.label}</label>
                 </div>
               ))}
             </div>
