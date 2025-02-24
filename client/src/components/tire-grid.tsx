@@ -1,5 +1,6 @@
 import { TireCard } from "./tire-card";
 import type { Tire } from "@shared/schema";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface TireGridProps {
   tires: Tire[];
@@ -11,10 +12,22 @@ export function TireGrid({ tires, isLoading }: TireGridProps) {
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {[...Array(6)].map((_, i) => (
-          <div
-            key={i}
-            className="h-[400px] bg-gray-50 rounded-lg animate-pulse relative overflow-hidden before:absolute before:inset-0 before:bg-gradient-to-r before:from-transparent before:via-white/20 before:to-transparent before:animate-[shimmer_2s_infinite]"
-          />
+          <div key={i} className="group">
+            <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-4 space-y-4">
+              <div className="aspect-square relative overflow-hidden rounded-md">
+                <Skeleton className="h-full w-full" />
+              </div>
+              <div className="space-y-2">
+                <Skeleton className="h-4 w-2/3" />
+                <Skeleton className="h-4 w-1/2" />
+                <Skeleton className="h-4 w-full" />
+              </div>
+              <div className="flex justify-between items-center pt-2">
+                <Skeleton className="h-6 w-24" />
+                <Skeleton className="h-9 w-[120px]" />
+              </div>
+            </div>
+          </div>
         ))}
       </div>
     );

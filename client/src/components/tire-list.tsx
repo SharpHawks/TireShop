@@ -9,6 +9,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Pencil,
   Trash2,
@@ -21,9 +22,10 @@ import { queryClient } from "@/lib/queryClient";
 
 interface TireListProps {
   tires: Tire[];
+  isLoading?: boolean;
 }
 
-export function TireList({ tires }: TireListProps) {
+export function TireList({ tires, isLoading }: TireListProps) {
   const { toast } = useToast();
 
   const deleteMutation = useMutation({
@@ -55,13 +57,46 @@ export function TireList({ tires }: TireListProps) {
     }
   };
 
+  if (isLoading) {
+    return (
+      <div className="bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Model</TableHead>
+              <TableHead>Size</TableHead>
+              <TableHead>Price</TableHead>
+              <TableHead>Stock</TableHead>
+              <TableHead>Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {[...Array(5)].map((_, i) => (
+              <TableRow key={i}>
+                <TableCell><Skeleton className="h-4 w-[120px]" /></TableCell>
+                <TableCell><Skeleton className="h-4 w-[80px]" /></TableCell>
+                <TableCell><Skeleton className="h-4 w-[60px]" /></TableCell>
+                <TableCell><Skeleton className="h-5 w-5" /></TableCell>
+                <TableCell>
+                  <div className="flex gap-2">
+                    <Skeleton className="h-8 w-8" />
+                    <Skeleton className="h-8 w-8" />
+                  </div>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+    );
+  }
+
   return (
     <div className="bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden">
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Brand</TableHead>
-            <TableHead>Name</TableHead>
+            <TableHead>Model</TableHead>
             <TableHead>Size</TableHead>
             <TableHead>Price</TableHead>
             <TableHead>Stock</TableHead>
@@ -71,8 +106,7 @@ export function TireList({ tires }: TireListProps) {
         <TableBody>
           {tires.map((tire) => (
             <TableRow key={tire.id}>
-              <TableCell>{tire.brand}</TableCell>
-              <TableCell>{tire.name}</TableCell>
+              <TableCell>{tire.modelId}</TableCell>
               <TableCell>{tire.size}</TableCell>
               <TableCell>${(tire.price / 100).toFixed(2)}</TableCell>
               <TableCell>
