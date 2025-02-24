@@ -67,9 +67,10 @@ export class DatabaseStorage implements IStorage {
 
       // String filters
       if (filters.code) conditions.push(eq(tires.code, filters.code));
-      if (filters.season) conditions.push(eq(tires.season, filters.season));
       if (filters.fuelEfficiency) conditions.push(eq(tires.fuelEfficiency, filters.fuelEfficiency));
       if (filters.wetGrip) conditions.push(eq(tires.wetGrip, filters.wetGrip));
+      if (filters.season) conditions.push(eq(tires.season, filters.season));
+
 
       // Numeric filters
       if (filters.maxNoiseLevel) {

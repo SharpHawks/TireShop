@@ -21,7 +21,7 @@ import {
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
-import { insertTireSchema, type InsertTire, type Tire } from "@shared/schema";
+import { insertTireSchema, type InsertTire, type Tire, type Model } from "@shared/schema";
 import { queryClient } from "@/lib/queryClient";
 
 export default function TireForm() {
@@ -30,9 +30,13 @@ export default function TireForm() {
   const { id, modelId } = useParams<{ id?: string; modelId?: string }>();
   const isEditing = !!id;
 
-  const { data: tire, isLoading } = useQuery<Tire>({
+  const { data: tire, isLoading: tireLoading } = useQuery<Tire>({
     queryKey: [`/api/tires/${id}`],
     enabled: isEditing,
+  });
+
+  const { data: models = [], isLoading: modelsLoading } = useQuery<Model[]>({
+    queryKey: ["/api/models"],
   });
 
   // Initialize form with default values
@@ -46,7 +50,6 @@ export default function TireForm() {
     size: '',
     code: '',
     imageUrl: '',
-    season: 'summer',
   };
 
   const form = useForm<InsertTire>({
@@ -103,7 +106,7 @@ export default function TireForm() {
     mutation.mutate(data);
   };
 
-  if (isEditing && isLoading) {
+  if ((isEditing && tireLoading) || modelsLoading) {
     return <div>Loading...</div>;
   }
 
@@ -116,6 +119,34 @@ export default function TireForm() {
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <FormField
+              control={form.control}
+              name="modelId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Model</FormLabel>
+                  <Select
+                    onValueChange={(value) => field.onChange(parseInt(value))}
+                    value={field.value?.toString()}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select a model" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {models.map((model) => (
+                        <SelectItem key={model.id} value={model.id.toString()}>
+                          {model.name} ({model.season === 1 ? 'Summer' : 'Winter'})
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
             <FormField
               control={form.control}
               name="size"
@@ -194,32 +225,6 @@ export default function TireForm() {
                       onChange={(e) => field.onChange(parseInt(e.target.value, 10) || 0)}
                     />
                   </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="season"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Season</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    value={field.value}
-                    defaultValue={field.value}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select season" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="summer">Summer</SelectItem>
-                      <SelectItem value="winter">Winter</SelectItem>
-                    </SelectContent>
-                  </Select>
                   <FormMessage />
                 </FormItem>
               )}
