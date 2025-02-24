@@ -14,7 +14,12 @@ export default function Home() {
     // Only add defined filters to query string
     Object.entries(filters).forEach(([key, value]) => {
       if (value !== undefined && value !== '') {
-        params.append(key, value.toString());
+        // Convert boolean to string 'true' or 'false'
+        if (typeof value === 'boolean') {
+          params.append(key, value ? 'true' : 'false');
+        } else {
+          params.append(key, value.toString());
+        }
       }
     });
 
