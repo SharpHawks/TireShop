@@ -50,14 +50,30 @@ const TIRE_SIZES = [
   "275/35R19",
 ];
 
+// Convert size with separators to simple format: "205/55R16" -> "2055516"
+const formatToSimple = (size: string) => {
+  return size.replace(/\/|R/g, '');
+};
+
+// Convert simple format to size with separators: "2055516" -> "205/55R16"
+const formatToStandard = (simple: string) => {
+  if (simple.length !== 7) return '';
+  const width = simple.slice(0, 3);
+  const aspect = simple.slice(3, 5);
+  const diameter = simple.slice(5);
+  return `${width}/${aspect}R${diameter}`;
+};
+
 export function TireFilters({ filters, onFilterChange }: TireFiltersProps) {
   const [searchValue, setSearchValue] = useState("");
   const [showDropdown, setShowDropdown] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  const filteredSizes = TIRE_SIZES.filter(size => 
-    size.toLowerCase().includes(searchValue.toLowerCase())
-  );
+  const filteredSizes = TIRE_SIZES.filter(size => {
+    const simpleInput = searchValue.replace(/\/|R/g, '');
+    const simpleSize = formatToSimple(size);
+    return simpleSize.startsWith(simpleInput);
+  });
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -71,7 +87,8 @@ export function TireFilters({ filters, onFilterChange }: TireFiltersProps) {
   }, []);
 
   const handleSizeSelect = (size: string) => {
-    setSearchValue(size);
+    const simpleSize = formatToSimple(size);
+    setSearchValue(simpleSize);
     setShowDropdown(false);
     const [width, rest] = size.split('/');
     const [aspect, diameter] = rest.split('R');
@@ -81,6 +98,19 @@ export function TireFilters({ filters, onFilterChange }: TireFiltersProps) {
       aspect,
       diameter
     });
+  };
+
+  const handleInputChange = (value: string) => {
+    setSearchValue(value);
+    setShowDropdown(true);
+
+    // If input matches the simple format exactly, try to convert and apply
+    if (/^\d{7}$/.test(value)) {
+      const standardSize = formatToStandard(value);
+      if (standardSize && TIRE_SIZES.includes(standardSize)) {
+        handleSizeSelect(standardSize);
+      }
+    }
   };
 
   return (
@@ -148,12 +178,9 @@ export function TireFilters({ filters, onFilterChange }: TireFiltersProps) {
         <Label>Quick Size Search</Label>
         <Input
           type="text"
-          placeholder="Type tire size (e.g. 205/55R16)"
+          placeholder="Type tire size (e.g. 2055516)"
           value={searchValue}
-          onChange={(e) => {
-            setSearchValue(e.target.value);
-            setShowDropdown(true);
-          }}
+          onChange={(e) => handleInputChange(e.target.value)}
           onFocus={() => setShowDropdown(true)}
         />
         {showDropdown && searchValue && (
