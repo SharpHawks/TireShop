@@ -8,6 +8,7 @@ import { ProtectedRoute } from "@/components/protected-route";
 import Home from "./pages/home";
 import Admin from "./pages/admin";
 import Auth from "./pages/auth";
+import TireForm from "./pages/admin/tire-form";
 import NotFound from "./pages/not-found";
 
 function Router() {
@@ -16,9 +17,18 @@ function Router() {
       <Route path="/" component={Home} />
       <Route path="/auth" component={Auth} />
       <ProtectedRoute
-        path="/admin"
         component={Admin}
-        requireAdmin={true}
+        requireAdmin
+      />
+      <ProtectedRoute
+        path="/admin/tires/new"
+        component={TireForm}
+        requireAdmin
+      />
+      <ProtectedRoute
+        path="/admin/tires/:id/edit"
+        component={TireForm}
+        requireAdmin
       />
       <Route component={NotFound} />
     </Switch>
