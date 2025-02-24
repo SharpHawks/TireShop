@@ -42,21 +42,34 @@ export default function TireForm() {
     fuelEfficiency: 'A',
     wetGrip: 'A',
     noiseLevel: 70,
+    price: 0,
+    size: '',
+    code: '',
+    imageUrl: '',
   };
 
   const form = useForm<InsertTire>({
     resolver: zodResolver(insertTireSchema),
-    defaultValues: tire || defaultValues,
+    defaultValues: isEditing && tire ? {
+      ...tire,
+      price: tire.price / 100, // Convert cents to euros for display
+    } : defaultValues,
   });
 
   const mutation = useMutation({
     mutationFn: async (data: InsertTire) => {
+      // Convert euros to cents for storage
+      const submitData = {
+        ...data,
+        price: Math.round(data.price * 100),
+      };
+
       const response = await fetch(
         isEditing ? `/api/tires/${id}` : '/api/tires',
         {
           method: isEditing ? 'PATCH' : 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(data),
+          body: JSON.stringify(submitData),
         }
       );
       if (!response.ok) {
@@ -149,7 +162,13 @@ export default function TireForm() {
                 <FormItem>
                   <FormLabel>Price (in euros)</FormLabel>
                   <FormControl>
-                    <Input {...field} type="number" min="0" step="0.01" />
+                    <Input 
+                      {...field}
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -163,7 +182,14 @@ export default function TireForm() {
                 <FormItem>
                   <FormLabel>Noise Level (dB)</FormLabel>
                   <FormControl>
-                    <Input {...field} type="number" min="0" max="120" step="1" />
+                    <Input 
+                      {...field} 
+                      type="number" 
+                      min="0" 
+                      max="120" 
+                      step="1"
+                      onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -246,16 +272,12 @@ export default function TireForm() {
             )}
           />
 
-          <FormField
-            control={form.control}
+          {/* Hidden modelId field */}
+          <input
+            type="hidden"
             name="modelId"
-            render={({ field }) => (
-              <Input
-                type="hidden"
-                value={field.value?.toString() ?? ""}
-                onChange={(e) => field.onChange(parseInt(e.target.value, 10))}
-              />
-            )}
+            value={modelId || ''}
+            onChange={() => {}}
           />
 
           <div className="flex gap-4">
