@@ -42,28 +42,28 @@ export default function TireForm() {
     fuelEfficiency: 'A',
     wetGrip: 'A',
     noiseLevel: 70,
-    price: 0,
+    price: '0', // Price as string
     size: '',
     code: '',
     imageUrl: '',
-    season: 'summer', // Add a default season
+    season: 'summer',
   };
 
   const form = useForm<InsertTire>({
     resolver: zodResolver(insertTireSchema),
     defaultValues: isEditing && tire ? {
       ...tire,
-      price: tire.price,
+      price: (tire.price / 100).toString(), // Convert cents to dollars for display
       modelId: tire.modelId,
     } : defaultValues,
   });
 
   const mutation = useMutation({
     mutationFn: async (data: InsertTire) => {
-      const formattedData: InsertTire = {
+      const formattedData = {
         ...data,
         modelId: parseInt(modelId || '0'),
-        price: Math.round(parseFloat(data.price.toString())), // Ensure price is a number
+        price: Math.round(parseFloat(data.price) * 100).toString(), // Convert dollars to cents and ensure string
       };
 
       const response = await fetch(
@@ -163,14 +163,14 @@ export default function TireForm() {
               name="price"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Price</FormLabel>
+                  <FormLabel>Price (in dollars)</FormLabel>
                   <FormControl>
-                    <Input 
+                    <Input
                       {...field}
                       type="number"
                       min="0"
-                      step="1"
-                      onChange={(e) => field.onChange(parseInt(e.target.value, 10) || 0)}
+                      step="0.01"
+                      onChange={(e) => field.onChange(e.target.value)} // Keep as string
                     />
                   </FormControl>
                   <FormMessage />
@@ -185,7 +185,7 @@ export default function TireForm() {
                 <FormItem>
                   <FormLabel>Noise Level (dB)</FormLabel>
                   <FormControl>
-                    <Input 
+                    <Input
                       {...field}
                       type="number"
                       min="0"
