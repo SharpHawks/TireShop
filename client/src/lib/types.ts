@@ -13,4 +13,14 @@ export const EFFICIENCY_RATINGS: FilterValue[] = [
   { label: "A", value: "A" },
   { label: "B", value: "B" },
   { label: "C", value: "C" },
+  { label: "D", value: "D" },
+  { label: "E", value: "E" },
+  { label: "F", value: "F" },
+  { label: "G", value: "G" },
+];
+
+export const NOISE_RATINGS: FilterValue[] = [
+  { label: "A", value: "A" },
+  { label: "B", value: "B" },
+  { label: "C", value: "C" },
 ];

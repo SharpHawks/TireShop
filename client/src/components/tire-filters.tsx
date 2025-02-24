@@ -8,7 +8,7 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import { TIRE_CODES, EFFICIENCY_RATINGS } from "@/lib/types";
+import { TIRE_CODES, EFFICIENCY_RATINGS, NOISE_RATINGS } from "@/lib/types";
 import type { TireFilters } from "@shared/schema";
 import { Fuel, Waves, Volume2 } from "lucide-react";
 
@@ -58,9 +58,8 @@ export function TireFilters({ filters, onFilterChange }: TireFiltersProps) {
         <div className="grid grid-cols-3 gap-8">
           {/* Fuel Efficiency Column */}
           <div className="space-y-4">
-            <div className="flex flex-col items-center gap-2">
+            <div className="flex flex-col items-center">
               <Fuel className="h-8 w-8" />
-              <Label>Fuel Efficiency</Label>
             </div>
             <div className="space-y-2">
               {EFFICIENCY_RATINGS.map((rating) => (
@@ -83,9 +82,8 @@ export function TireFilters({ filters, onFilterChange }: TireFiltersProps) {
 
           {/* Wet Grip Column */}
           <div className="space-y-4">
-            <div className="flex flex-col items-center gap-2">
+            <div className="flex flex-col items-center">
               <Waves className="h-8 w-8" />
-              <Label>Wet Grip</Label>
             </div>
             <div className="space-y-2">
               {EFFICIENCY_RATINGS.map((rating) => (
@@ -108,22 +106,21 @@ export function TireFilters({ filters, onFilterChange }: TireFiltersProps) {
 
           {/* Noise Level Column */}
           <div className="space-y-4">
-            <div className="flex flex-col items-center gap-2">
+            <div className="flex flex-col items-center">
               <Volume2 className="h-8 w-8" />
-              <Label>Noise Level</Label>
             </div>
             <div className="space-y-2">
-              {EFFICIENCY_RATINGS.map((rating) => (
+              {NOISE_RATINGS.map((rating) => (
                 <div key={rating.value} className="flex items-center justify-center gap-2">
                   <Checkbox
                     id={`noise-${rating.value}`}
-                    checked={filters.maxNoiseLevel === 70 + 
-                      (rating.value === 'A' ? 0 : rating.value === 'B' ? 5 : 10)}
+                    checked={filters.maxNoiseLevel === 
+                      (rating.value === 'A' ? 70 : rating.value === 'B' ? 75 : 80)}
                     onCheckedChange={(checked) =>
                       onFilterChange({
                         ...filters,
                         maxNoiseLevel: checked 
-                          ? 70 + (rating.value === 'A' ? 0 : rating.value === 'B' ? 5 : 10)
+                          ? (rating.value === 'A' ? 70 : rating.value === 'B' ? 75 : 80)
                           : undefined,
                       })
                     }
