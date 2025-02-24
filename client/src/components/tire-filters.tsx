@@ -8,9 +8,15 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { TIRE_CODES, EFFICIENCY_RATINGS, NOISE_RATINGS } from "@/lib/types";
 import type { TireFilters } from "@shared/schema";
-import { Fuel, Waves, Volume2 } from "lucide-react";
+import { Fuel, Waves, Volume2, Info } from "lucide-react";
 
 interface TireFiltersProps {
   filters: TireFilters;
@@ -33,25 +39,40 @@ export function TireFilters({ filters, onFilterChange }: TireFiltersProps) {
         </div>
       </div>
 
-      <div className="space-y-2">
-        <Label>Tire Code</Label>
-        <Select
-          value={filters.code}
-          onValueChange={(value) =>
-            onFilterChange({ ...filters, code: value })
-          }
-        >
-          <SelectTrigger>
-            <SelectValue placeholder="Select code" />
-          </SelectTrigger>
-          <SelectContent>
-            {TIRE_CODES.map((code) => (
-              <SelectItem key={code.value} value={code.value}>
-                {code.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+      <div className="space-y-4">
+        <Label>Tire Codes</Label>
+        <div className="grid grid-cols-2 gap-4">
+          {TIRE_CODES.map((code) => (
+            <TooltipProvider key={code.value}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div className="flex items-center gap-2">
+                    <Checkbox
+                      id={`code-${code.value}`}
+                      checked={filters.code === code.value}
+                      onCheckedChange={(checked) =>
+                        onFilterChange({
+                          ...filters,
+                          code: checked ? code.value : undefined,
+                        })
+                      }
+                    />
+                    <label 
+                      htmlFor={`code-${code.value}`}
+                      className="flex items-center gap-1 cursor-pointer"
+                    >
+                      {code.label}
+                      <Info className="h-4 w-4 text-muted-foreground" />
+                    </label>
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>{code.description}</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          ))}
+        </div>
       </div>
 
       <div className="bg-accent/50 p-4 rounded-lg">

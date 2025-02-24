@@ -1,12 +1,18 @@
 export type FilterValue = {
   label: string;
   value: string;
+  description?: string;
 };
 
 export const TIRE_CODES: FilterValue[] = [
-  { label: "MFS (Max Flange Shield)", value: "MFS" },
-  { label: "RSC (Run Flat)", value: "RSC" },
-  { label: "XL (Extra Load)", value: "XL" },
+  { label: "RSC", value: "RSC", description: "Run Flat System Component - Can continue driving after a puncture" },
+  { label: "SEAL", value: "SEAL", description: "Self-sealing technology for puncture protection" },
+  { label: "SOUND", value: "SOUND", description: "Enhanced noise reduction technology" },
+  { label: "XL", value: "XL", description: "Extra Load - Higher load capacity" },
+  { label: "ELECT", value: "ELECT", description: "Specifically designed for electric vehicles" },
+  { label: "MFS", value: "MFS", description: "Max Flange Shield - Rim protection" },
+  { label: "N0", value: "N0", description: "Original equipment for Porsche vehicles" },
+  { label: "*", value: "STAR", description: "Original equipment for BMW vehicles" },
 ];
 
 export const EFFICIENCY_RATINGS: FilterValue[] = [
