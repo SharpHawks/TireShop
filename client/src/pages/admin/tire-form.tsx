@@ -37,7 +37,7 @@ export default function TireForm() {
 
   // Initialize form with default values
   const defaultValues: InsertTire = {
-    modelId: modelId ? parseInt(modelId) : 0,
+    modelId: modelId ? parseInt(modelId) : 1, // Set to first model as default
     inStock: true,
     fuelEfficiency: 'A',
     wetGrip: 'A',
@@ -62,7 +62,7 @@ export default function TireForm() {
     mutationFn: async (data: InsertTire) => {
       const formattedData = {
         ...data,
-        modelId: parseInt(modelId || '0'),
+        modelId: modelId ? parseInt(modelId) : data.modelId, // Use the provided modelId from URL or form data
         price: Math.round(parseFloat(data.price) * 100).toString(), // Convert dollars to cents and ensure string
       };
 
