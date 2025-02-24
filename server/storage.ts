@@ -30,6 +30,7 @@ export class MemStorage implements IStorage {
         brand: "Bridgestone",
         code: "MFS",
         size: "205/55R16",
+        season: "summer",
         fuelEfficiency: "A",
         wetGrip: "B",
         noiseLevel: 68,
@@ -42,6 +43,7 @@ export class MemStorage implements IStorage {
         brand: "Continental",
         code: "RSC",
         size: "225/45R17",
+        season: "summer",
         fuelEfficiency: "B",
         wetGrip: "A",
         noiseLevel: 72,
@@ -54,6 +56,7 @@ export class MemStorage implements IStorage {
         brand: "Michelin",
         code: "XL",
         size: "245/40R18",
+        season: "winter",
         fuelEfficiency: "C",
         wetGrip: "B",
         noiseLevel: 71,
@@ -66,6 +69,7 @@ export class MemStorage implements IStorage {
         brand: "Pirelli",
         code: "SOUND",
         size: "255/35R19",
+        season: "summer",
         fuelEfficiency: "B",
         wetGrip: "A",
         noiseLevel: 69,
@@ -106,6 +110,9 @@ export class MemStorage implements IStorage {
       }
       if (filters.code) {
         tires = tires.filter((t) => t.code === filters.code);
+      }
+      if (filters.season) {
+        tires = tires.filter((t) => t.season === filters.season);
       }
       if (filters.fuelEfficiency) {
         tires = tires.filter((t) => t.fuelEfficiency === filters.fuelEfficiency);
