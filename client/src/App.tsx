@@ -17,6 +17,7 @@ function Router() {
       <Route path="/" component={Home} />
       <Route path="/auth" component={Auth} />
       <ProtectedRoute
+        path="/admin"
         component={Admin}
         requireAdmin
       />

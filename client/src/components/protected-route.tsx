@@ -1,11 +1,13 @@
 import { useAuth } from "@/hooks/use-auth";
 import { Loader2 } from "lucide-react";
-import { Redirect } from "wouter";
+import { Route, Redirect } from "wouter";
 
 export function ProtectedRoute({
+  path,
   component: Component,
   requireAdmin = false,
 }: {
+  path: string;
   component: React.ComponentType;
   requireAdmin?: boolean;
 }) {
@@ -13,15 +15,21 @@ export function ProtectedRoute({
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <Loader2 className="h-8 w-8 animate-spin text-border" />
-      </div>
+      <Route path={path}>
+        <div className="flex items-center justify-center min-h-screen">
+          <Loader2 className="h-8 w-8 animate-spin text-border" />
+        </div>
+      </Route>
     );
   }
 
   if (!user || (requireAdmin && !user.isAdmin)) {
-    return <Redirect to="/auth" />;
+    return (
+      <Route path={path}>
+        <Redirect to="/auth" />
+      </Route>
+    );
   }
 
-  return <Component />;
+  return <Route path={path} component={Component} />;
 }
