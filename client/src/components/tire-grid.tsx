@@ -22,7 +22,7 @@ export function TireGrid({ tires, isLoading }: TireGridProps) {
 
   if (tires.length === 0) {
     return (
-      <div className="text-center py-12 bg-gray-50/50 rounded-lg border border-gray-100">
+      <div className="text-center py-12 bg-gray-50/50 rounded-lg border border-gray-200">
         <h3 className="text-xl font-semibold text-gray-900 mb-2">No tires found</h3>
         <p className="text-gray-600">
           Try adjusting your filters to find what you're looking for.
@@ -38,7 +38,7 @@ export function TireGrid({ tires, isLoading }: TireGridProps) {
           key={tire.id} 
           className="group transition-all duration-300 hover:-translate-y-1"
         >
-          <div className="bg-white rounded-lg shadow-md transition-shadow duration-300 group-hover:shadow-lg border border-gray-100">
+          <div className="bg-white rounded-lg shadow-lg transition-shadow duration-300 group-hover:shadow-xl border border-gray-200 bg-[linear-gradient(rgba(255,255,255,.9),rgba(255,255,255,.9)),repeating-linear-gradient(45deg,#f8f9fa_0px,#f8f9fa_1px,transparent_1px,transparent_10px)]">
             <TireCard tire={tire} />
           </div>
         </div>
