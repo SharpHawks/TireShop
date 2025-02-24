@@ -27,7 +27,7 @@ import { queryClient } from "@/lib/queryClient";
 export default function TireForm() {
   const [, navigate] = useLocation();
   const { toast } = useToast();
-  const { id } = useParams<{ id: string }>();
+  const { id, modelId } = useParams<{ id?: string; modelId?: string }>();
   const isEditing = !!id;
 
   const { data: tire, isLoading } = useQuery<Tire>({
@@ -38,6 +38,7 @@ export default function TireForm() {
   const form = useForm<InsertTire>({
     resolver: zodResolver(insertTireSchema),
     defaultValues: tire || {
+      modelId: modelId ? parseInt(modelId) : undefined,
       inStock: true,
       season: 'summer',
       fuelEfficiency: 'A',
@@ -48,6 +49,7 @@ export default function TireForm() {
 
   const mutation = useMutation({
     mutationFn: async (data: InsertTire) => {
+      console.log("Submitting data:", data); // Debug log
       const response = await fetch(
         isEditing ? `/api/tires/${id}` : '/api/tires',
         {
@@ -57,7 +59,8 @@ export default function TireForm() {
         }
       );
       if (!response.ok) {
-        throw new Error('Failed to save tire');
+        const error = await response.text();
+        throw new Error(`Failed to save tire: ${error}`);
       }
       return response.json();
     },
@@ -70,6 +73,7 @@ export default function TireForm() {
       navigate('/admin');
     },
     onError: (error: Error) => {
+      console.error("Mutation error:", error); // Debug log
       toast({
         title: 'Error',
         description: error.message,
@@ -79,6 +83,7 @@ export default function TireForm() {
   });
 
   const onSubmit = (data: InsertTire) => {
+    console.log("Form submitted with data:", data); // Debug log
     mutation.mutate(data);
   };
 
@@ -95,34 +100,6 @@ export default function TireForm() {
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <FormField
-              control={form.control}
-              name="brand"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Brand</FormLabel>
-                  <FormControl>
-                    <Input {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="name"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Name</FormLabel>
-                  <FormControl>
-                    <Input {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
             <FormField
               control={form.control}
               name="size"
@@ -290,6 +267,12 @@ export default function TireForm() {
                 <FormMessage />
               </FormItem>
             )}
+          />
+
+          <input 
+            type="hidden" 
+            {...form.register('modelId')} 
+            value={modelId} 
           />
 
           <div className="flex gap-4">
