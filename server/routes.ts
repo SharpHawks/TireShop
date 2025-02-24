@@ -81,6 +81,21 @@ export async function registerRoutes(app: Express) {
     }
   });
 
+  // Add the new route handler for fetching all models
+  app.get("/api/models", async (req, res) => {
+    try {
+      // Fetch all models from the database using storage
+      const [models] = await db
+        .select()
+        .from(schema.models)
+        .orderBy(desc(schema.models.name));
+      res.json(models || []);
+    } catch (error) {
+      console.error('Error fetching models:', error);
+      res.status(500).json({ error: 'Failed to fetch models' });
+    }
+  });
+
   // Model management routes
   app.get("/api/brands/:brandId/models", async (req, res) => {
     try {
