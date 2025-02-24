@@ -75,6 +75,27 @@ export function TireFilters({ filters, onFilterChange }: TireFiltersProps) {
       </div>
 
       <div className="space-y-2">
+        <Label>Wet Grip Rating</Label>
+        <Select
+          value={filters.wetGrip}
+          onValueChange={(value) =>
+            onFilterChange({ ...filters, wetGrip: value })
+          }
+        >
+          <SelectTrigger>
+            <SelectValue placeholder="Select rating" />
+          </SelectTrigger>
+          <SelectContent>
+            {EFFICIENCY_RATINGS.map((rating) => (
+              <SelectItem key={rating.value} value={rating.value}>
+                {rating.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div className="space-y-2">
         <Label>Maximum Noise Level (dB)</Label>
         <Slider
           value={[filters.maxNoiseLevel || 80]}
