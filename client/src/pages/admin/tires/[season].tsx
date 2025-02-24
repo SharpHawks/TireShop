@@ -33,11 +33,16 @@ export default function SeasonalTires() {
     queryKey: ["/api/brands"],
   });
 
-  // Fetch models for selected brand
-  const { data: models = [], isLoading: isModelsLoading } = useQuery<Model[]>({
-    queryKey: ["/api/brands", selectedBrand, "models"],
+  // Fetch all models
+  const { data: allModels = [], isLoading: isModelsLoading } = useQuery<Model[]>({
+    queryKey: ["/api/models"],
     enabled: selectedBrand !== "all",
   });
+
+  // Filter models for selected brand
+  const models = selectedBrand === "all"
+    ? []
+    : allModels.filter(model => model.brandId === Number(selectedBrand));
 
   // Fetch tires
   const { data: tires = [], isLoading: isTiresLoading } = useQuery<Tire[]>({
@@ -343,10 +348,10 @@ export default function SeasonalTires() {
         </div>
       </Card>
 
-      <TireList 
+      <TireList
         tires={filteredTires}
         models={models}
-        isLoading={isTiresLoading || isBrandsLoading || (selectedBrand !== "all" && isModelsLoading)} 
+        isLoading={isTiresLoading || isBrandsLoading || (selectedBrand !== "all" && isModelsLoading)}
       />
     </div>
   );
