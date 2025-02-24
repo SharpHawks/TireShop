@@ -119,15 +119,26 @@ export function TireFilters({ filters, onFilterChange }: TireFiltersProps) {
   const handleInputChange = (value: string) => {
     setSearchValue(value);
 
-    // Only show dropdown and apply filters when we have a complete size
-    if (/^\d{7}$/.test(value)) {
+    // Show dropdown if we have input
+    if (value) {
       setShowDropdown(true);
-      const standardSize = formatToStandard(value);
-      if (standardSize && TIRE_SIZES.includes(standardSize)) {
-        handleSizeSelect(standardSize);
+
+      // If we have a complete size, try to apply it
+      if (/^\d{7}$/.test(value)) {
+        const standardSize = formatToStandard(value);
+        if (standardSize && TIRE_SIZES.includes(standardSize)) {
+          handleSizeSelect(standardSize);
+        }
       }
     } else {
       setShowDropdown(false);
+      // Clear size filters if input is empty
+      onFilterChange({
+        ...filters,
+        width: undefined,
+        aspect: undefined,
+        diameter: undefined
+      });
     }
   };
 
@@ -225,7 +236,9 @@ export function TireFilters({ filters, onFilterChange }: TireFiltersProps) {
           placeholder="Type tire size (e.g. 2055516)"
           value={searchValue}
           onChange={(e) => handleInputChange(e.target.value)}
-          onFocus={() => setShowDropdown(false)}
+          onFocus={() => {
+            if (searchValue) setShowDropdown(true);
+          }}
         />
         {showDropdown && searchValue && (
           <div className="absolute w-full mt-1 bg-popover border rounded-md shadow-lg z-50 max-h-[200px] overflow-y-auto">
