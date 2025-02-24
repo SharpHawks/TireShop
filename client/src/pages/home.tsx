@@ -39,7 +39,7 @@ export default function Home() {
   });
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-[#f8f9fa] bg-[radial-gradient(#e9ecef_1px,transparent_1px)] [background-size:20px_20px]">
       <div className="container mx-auto px-4 py-12">
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold text-gray-900 mb-4">
@@ -53,12 +53,14 @@ export default function Home() {
         <div className="grid grid-cols-1 lg:grid-cols-[300px_1fr] gap-8">
           <aside>
             <div className="sticky top-6">
-              <TireFilters filters={filters} onFilterChange={setFilters} />
+              <div className="bg-white rounded-lg shadow-md border border-gray-100 overflow-hidden [background-image:repeating-linear-gradient(45deg,#fcfcfc_25%,transparent_25%,transparent_75%,#fcfcfc_75%,#fcfcfc),repeating-linear-gradient(45deg,#fcfcfc_25%,#ffffff_25%,#ffffff_75%,#fcfcfc_75%,#fcfcfc)] [background-position:0_0,10px_10px] [background-size:20px_20px]">
+                <TireFilters filters={filters} onFilterChange={setFilters} />
+              </div>
             </div>
           </aside>
 
           <main>
-            <div className="bg-white">
+            <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-100">
               <TireGrid tires={tires} isLoading={isLoading} />
             </div>
           </main>

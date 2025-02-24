@@ -13,7 +13,7 @@ export function TireGrid({ tires, isLoading }: TireGridProps) {
         {[...Array(6)].map((_, i) => (
           <div
             key={i}
-            className="h-[400px] bg-gray-100 rounded-lg animate-pulse"
+            className="h-[400px] bg-gray-50 rounded-lg animate-pulse relative overflow-hidden before:absolute before:inset-0 before:bg-gradient-to-r before:from-transparent before:via-white/20 before:to-transparent before:animate-[shimmer_2s_infinite]"
           />
         ))}
       </div>
@@ -22,7 +22,7 @@ export function TireGrid({ tires, isLoading }: TireGridProps) {
 
   if (tires.length === 0) {
     return (
-      <div className="text-center py-12 bg-gray-50 rounded-lg">
+      <div className="text-center py-12 bg-gray-50/50 rounded-lg border border-gray-100">
         <h3 className="text-xl font-semibold text-gray-900 mb-2">No tires found</h3>
         <p className="text-gray-600">
           Try adjusting your filters to find what you're looking for.
@@ -34,8 +34,13 @@ export function TireGrid({ tires, isLoading }: TireGridProps) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       {tires.map((tire) => (
-        <div key={tire.id} className="transition-transform duration-200 hover:-translate-y-1">
-          <TireCard tire={tire} />
+        <div 
+          key={tire.id} 
+          className="group transition-all duration-300 hover:-translate-y-1"
+        >
+          <div className="bg-white rounded-lg shadow-md transition-shadow duration-300 group-hover:shadow-lg border border-gray-100">
+            <TireCard tire={tire} />
+          </div>
         </div>
       ))}
     </div>
