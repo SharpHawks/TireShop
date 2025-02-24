@@ -90,12 +90,17 @@ export const insertModelSchema = createInsertSchema(models).omit({
   updatedAt: true,
 });
 
-export const insertTireSchema = createInsertSchema(tires).omit({ 
-  id: true, 
-  createdAt: true, 
-  updatedAt: true,
-  createdById: true,
-});
+export const insertTireSchema = createInsertSchema(tires)
+  .extend({
+    price: z.string()
+      .transform((val) => Math.round(parseFloat(val) * 100)), // Convert dollar amount to cents
+  })
+  .omit({ 
+    id: true, 
+    createdAt: true, 
+    updatedAt: true,
+    createdById: true,
+  });
 
 // Filter schema
 export const tireFilters = z.object({

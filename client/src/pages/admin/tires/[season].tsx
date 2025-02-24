@@ -179,12 +179,13 @@ export default function SeasonalTires() {
         <h1 className="text-3xl font-bold capitalize">
           {season} Tires Management
         </h1>
-        <Link href="/admin/tires/new">
-          <Button>
-            <Plus className="h-4 w-4 mr-2" />
-            Add New Tire
-          </Button>
-        </Link>
+        <Button
+          onClick={() => window.location.href = '/admin/tires/new'}
+          disabled={selectedBrand === "all" || selectedModel === "all"}
+        >
+          <Plus className="h-4 w-4 mr-2" />
+          Add New Tire
+        </Button>
       </div>
 
       <Card className="p-6 mb-8">
