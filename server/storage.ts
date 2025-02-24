@@ -48,7 +48,12 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getTires(filters?: TireFilters): Promise<Tire[]> {
-    let query = db.select().from(tires);
+    let query = db.select({
+      ...tires,
+      modelSeason: models.season,
+    })
+    .from(tires)
+    .leftJoin(models, eq(tires.modelId, models.id));
 
     if (filters) {
       const conditions = [];
@@ -69,8 +74,11 @@ export class DatabaseStorage implements IStorage {
       if (filters.code) conditions.push(eq(tires.code, filters.code));
       if (filters.fuelEfficiency) conditions.push(eq(tires.fuelEfficiency, filters.fuelEfficiency));
       if (filters.wetGrip) conditions.push(eq(tires.wetGrip, filters.wetGrip));
-      if (filters.season) conditions.push(eq(tires.season, filters.season));
 
+      // Model season filter
+      if (filters.modelSeason) {
+        conditions.push(eq(models.season, filters.modelSeason));
+      }
 
       // Numeric filters
       if (filters.maxNoiseLevel) {

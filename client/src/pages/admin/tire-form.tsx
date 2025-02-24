@@ -65,8 +65,8 @@ export default function TireForm() {
     mutationFn: async (data: InsertTire) => {
       const formattedData = {
         ...data,
-        modelId: modelId ? parseInt(modelId) : data.modelId, // Use the provided modelId from URL or form data
-        price: Math.round(parseFloat(data.price) * 100).toString(), // Convert dollars to cents and ensure string
+        modelId: modelId ? parseInt(modelId) : data.modelId,
+        price: Math.round(parseFloat(data.price) * 100).toString(), // Convert dollars to cents
       };
 
       const response = await fetch(
