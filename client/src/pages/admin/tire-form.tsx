@@ -62,8 +62,9 @@ export default function TireForm() {
       const submitData = {
         ...data,
         price: Math.round(parseFloat(data.price) * 100), // Convert string price to number and then to cents
-        modelId: modelId ? parseInt(modelId, 10) : undefined,
       };
+
+      console.log('Submitting tire data:', submitData); // Debug log
 
       const response = await fetch(
         isEditing ? `/api/tires/${id}` : '/api/tires',
@@ -73,6 +74,7 @@ export default function TireForm() {
           body: JSON.stringify(submitData),
         }
       );
+
       if (!response.ok) {
         const error = await response.text();
         throw new Error(`Failed to save tire: ${error}`);
@@ -98,7 +100,17 @@ export default function TireForm() {
   });
 
   const onSubmit = (data: InsertTire) => {
-    mutation.mutate(data);
+    // Log form data before submission
+    console.log('Form data before submission:', data);
+
+    // Ensure modelId is included
+    const submitData = {
+      ...data,
+      modelId: modelId ? parseInt(modelId, 10) : undefined,
+    };
+
+    console.log('Final submit data:', submitData);
+    mutation.mutate(submitData);
   };
 
   if (isEditing && isLoading) {
@@ -270,6 +282,19 @@ export default function TireForm() {
                 <FormLabel className="!mt-0">In Stock</FormLabel>
                 <FormMessage />
               </FormItem>
+            )}
+          />
+
+          {/* Hidden modelId field */}
+          <FormField
+            control={form.control}
+            name="modelId"
+            render={({ field }) => (
+              <Input
+                type="hidden"
+                {...field}
+                value={modelId || ''}
+              />
             )}
           />
 
