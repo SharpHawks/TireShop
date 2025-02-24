@@ -75,6 +75,16 @@ export function TireFilters({ filters, onFilterChange }: TireFiltersProps) {
   const [showDropdown, setShowDropdown] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
+  // Set summer tires as default when filters.season is undefined
+  useEffect(() => {
+    if (filters.season === undefined) {
+      onFilterChange({
+        ...filters,
+        season: 'summer'
+      });
+    }
+  }, []);
+
   const filteredSizes = TIRE_SIZES.filter(size => {
     const simpleInput = searchValue.replace(/\/|R/g, '');
     const simpleSize = formatToSimple(size);
@@ -108,46 +118,16 @@ export function TireFilters({ filters, onFilterChange }: TireFiltersProps) {
 
   const handleInputChange = (value: string) => {
     setSearchValue(value);
-    setShowDropdown(true);
 
-    // Clear size filters if input is empty
-    if (!value) {
-      onFilterChange({
-        ...filters,
-        width: undefined,
-        aspect: undefined,
-        diameter: undefined
-      });
-      return;
-    }
-
-    // If input matches the simple format exactly, try to convert and apply
+    // Only show dropdown and apply filters when we have a complete size
     if (/^\d{7}$/.test(value)) {
+      setShowDropdown(true);
       const standardSize = formatToStandard(value);
       if (standardSize && TIRE_SIZES.includes(standardSize)) {
         handleSizeSelect(standardSize);
       }
-    } else if (value.length < 7) {
-      // If we have a partial number, try to match the width
-      if (/^\d{1,3}$/.test(value)) {
-        onFilterChange({
-          ...filters,
-          width: value.padStart(3, '0'),
-          aspect: undefined,
-          diameter: undefined
-        });
-      }
-      // If we have more digits, try to match width and aspect
-      else if (/^\d{4,5}$/.test(value)) {
-        const width = value.slice(0, 3);
-        const aspect = value.slice(3).padStart(2, '0');
-        onFilterChange({
-          ...filters,
-          width,
-          aspect,
-          diameter: undefined
-        });
-      }
+    } else {
+      setShowDropdown(false);
     }
   };
 
@@ -245,7 +225,7 @@ export function TireFilters({ filters, onFilterChange }: TireFiltersProps) {
           placeholder="Type tire size (e.g. 2055516)"
           value={searchValue}
           onChange={(e) => handleInputChange(e.target.value)}
-          onFocus={() => setShowDropdown(true)}
+          onFocus={() => setShowDropdown(false)}
         />
         {showDropdown && searchValue && (
           <div className="absolute w-full mt-1 bg-popover border rounded-md shadow-lg z-50 max-h-[200px] overflow-y-auto">
