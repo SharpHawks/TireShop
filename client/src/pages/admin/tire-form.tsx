@@ -42,7 +42,7 @@ export default function TireForm() {
     fuelEfficiency: 'A',
     wetGrip: 'A',
     noiseLevel: 70,
-    price: 0,
+    price: '0',
     size: '',
     code: '',
     imageUrl: '',
@@ -52,7 +52,7 @@ export default function TireForm() {
     resolver: zodResolver(insertTireSchema),
     defaultValues: isEditing && tire ? {
       ...tire,
-      price: tire.price / 100, // Convert cents to euros for display
+      price: (tire.price / 100).toString(), // Convert cents to euros for display
     } : defaultValues,
   });
 
@@ -61,7 +61,7 @@ export default function TireForm() {
       // Convert euros to cents for storage
       const submitData = {
         ...data,
-        price: Math.round(data.price * 100),
+        price: Math.round(parseFloat(data.price) * 100), // Convert string price to number and then to cents
       };
 
       const response = await fetch(
@@ -167,7 +167,7 @@ export default function TireForm() {
                       type="number"
                       min="0"
                       step="0.01"
-                      onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                      onChange={(e) => field.onChange(e.target.value)} // Keep as string
                     />
                   </FormControl>
                   <FormMessage />
