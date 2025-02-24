@@ -10,7 +10,8 @@ import {
 } from "@/components/ui/select";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus, ArrowLeft } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Plus, ArrowLeft, Pencil, Save, Trash2, X } from "lucide-react";
 import { Link } from "wouter";
 import type { Tire } from "@shared/schema";
 import { TireList } from "@/components/tire-list";
@@ -19,6 +20,10 @@ export default function SeasonalTires() {
   const { season } = useParams<{ season: string }>();
   const [selectedBrand, setSelectedBrand] = useState<string>("all");
   const [selectedModel, setSelectedModel] = useState<string>("all");
+  const [isEditingBrand, setIsEditingBrand] = useState(false);
+  const [isEditingModel, setIsEditingModel] = useState(false);
+  const [newBrandName, setNewBrandName] = useState("");
+  const [newModelName, setNewModelName] = useState("");
 
   const { data: tires = [] } = useQuery<Tire[]>({
     queryKey: ["/api/tires"],
@@ -39,10 +44,11 @@ export default function SeasonalTires() {
   // Get models for selected brand
   const models = useMemo(() => {
     if (selectedBrand === "all") return [];
-    return seasonalTires
-      .filter(tire => tire.brand === selectedBrand)
-      .map(tire => tire.name)
-      .sort();
+    return Array.from(new Set(
+      seasonalTires
+        .filter(tire => tire.brand === selectedBrand)
+        .map(tire => tire.name)
+    )).sort();
   }, [selectedBrand, seasonalTires]);
 
   // Filter tires based on selection
@@ -56,6 +62,18 @@ export default function SeasonalTires() {
     }
     return filtered;
   }, [seasonalTires, selectedBrand, selectedModel]);
+
+  const handleSaveBrand = () => {
+    // TODO: Implement brand save logic
+    setIsEditingBrand(false);
+    setNewBrandName("");
+  };
+
+  const handleSaveModel = () => {
+    // TODO: Implement model save logic
+    setIsEditingModel(false);
+    setNewModelName("");
+  };
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -82,53 +100,161 @@ export default function SeasonalTires() {
 
       <Card className="p-6 mb-8">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <label className="text-sm font-medium mb-2 block">
-              Select Brand
-            </label>
-            <Select
-              value={selectedBrand}
-              onValueChange={setSelectedBrand}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Choose a brand" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Brands</SelectItem>
-                {brands.map(brand => (
-                  <SelectItem key={brand} value={brand}>
-                    {brand}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+          {/* Brand Selection */}
+          <div className="space-y-4">
+            <div className="flex items-center justify-between mb-2">
+              <label className="text-sm font-medium">Brands</label>
+              <div className="flex gap-2">
+                {isEditingBrand ? (
+                  <>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setIsEditingBrand(false)}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="default"
+                      size="sm"
+                      onClick={handleSaveBrand}
+                    >
+                      <Save className="h-4 w-4" />
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setIsEditingBrand(true)}
+                    >
+                      <Plus className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      disabled={selectedBrand === "all"}
+                    >
+                      <Pencil className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      disabled={selectedBrand === "all"}
+                    >
+                      <Trash2 className="h-4 w-4 text-destructive" />
+                    </Button>
+                  </>
+                )}
+              </div>
+            </div>
+            {isEditingBrand ? (
+              <Input
+                value={newBrandName}
+                onChange={(e) => setNewBrandName(e.target.value)}
+                placeholder="Enter new brand name"
+              />
+            ) : (
+              <Select
+                value={selectedBrand}
+                onValueChange={setSelectedBrand}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Choose a brand" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Brands</SelectItem>
+                  {brands.map(brand => (
+                    <SelectItem key={brand} value={brand}>
+                      {brand}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
           </div>
 
-          <div>
-            <label className="text-sm font-medium mb-2 block">
-              Select Model
-            </label>
-            <Select
-              value={selectedModel}
-              onValueChange={setSelectedModel}
-              disabled={selectedBrand === "all"}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder={
-                  selectedBrand === "all"
-                    ? "Select a brand first"
-                    : "Choose a model"
-                } />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Models</SelectItem>
-                {models.map(model => (
-                  <SelectItem key={model} value={model}>
-                    {model}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+          {/* Model Selection */}
+          <div className="space-y-4">
+            <div className="flex items-center justify-between mb-2">
+              <label className="text-sm font-medium">Models</label>
+              <div className="flex gap-2">
+                {isEditingModel ? (
+                  <>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setIsEditingModel(false)}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="default"
+                      size="sm"
+                      onClick={handleSaveModel}
+                    >
+                      <Save className="h-4 w-4" />
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setIsEditingModel(true)}
+                      disabled={selectedBrand === "all"}
+                    >
+                      <Plus className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      disabled={selectedModel === "all"}
+                    >
+                      <Pencil className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      disabled={selectedModel === "all"}
+                    >
+                      <Trash2 className="h-4 w-4 text-destructive" />
+                    </Button>
+                  </>
+                )}
+              </div>
+            </div>
+            {isEditingModel ? (
+              <Input
+                value={newModelName}
+                onChange={(e) => setNewModelName(e.target.value)}
+                placeholder="Enter new model name"
+                disabled={selectedBrand === "all"}
+              />
+            ) : (
+              <Select
+                value={selectedModel}
+                onValueChange={setSelectedModel}
+                disabled={selectedBrand === "all"}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder={
+                    selectedBrand === "all"
+                      ? "Select a brand first"
+                      : "Choose a model"
+                  } />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Models</SelectItem>
+                  {models.map(model => (
+                    <SelectItem key={model} value={model}>
+                      {model}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
           </div>
         </div>
       </Card>
