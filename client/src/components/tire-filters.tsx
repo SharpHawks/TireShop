@@ -69,61 +69,6 @@ export function TireFilters({ filters, onFilterChange }: TireFiltersProps) {
 
   return (
     <div className="space-y-6 p-6 bg-card rounded-lg">
-      <div className="space-y-4">
-        <Label>Quick Size Search</Label>
-        <Popover open={open} onOpenChange={setOpen}>
-          <PopoverTrigger asChild>
-            <Button
-              variant="outline"
-              role="combobox"
-              aria-expanded={open}
-              className="w-full justify-between"
-            >
-              {value
-                ? TIRE_SIZES.find((size) => size === value)
-                : "Search tire size..."}
-              <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-full p-0">
-            <Command>
-              <CommandInput placeholder="Search tire size..." value={value} onValueChange={setValue}/>
-              <CommandEmpty>No tire size found.</CommandEmpty>
-              <CommandGroup>
-                {TIRE_SIZES.filter(size => 
-                  !value || size.toLowerCase().includes(value.toLowerCase())
-                ).map((size) => (
-                  <CommandItem
-                    key={size}
-                    value={size}
-                    onSelect={(currentValue) => {
-                      setValue(currentValue);
-                      setOpen(false);
-                      const [width, rest] = currentValue.split('/');
-                      const [aspect, diameter] = rest.split('R');
-                      onFilterChange({
-                        ...filters,
-                        width,
-                        aspect,
-                        diameter
-                      });
-                    }}
-                  >
-                    <Check
-                      className={cn(
-                        "mr-2 h-4 w-4",
-                        value === size ? "opacity-100" : "opacity-0"
-                      )}
-                    />
-                    {size}
-                  </CommandItem>
-                ))}
-              </CommandGroup>
-            </Command>
-          </PopoverContent>
-        </Popover>
-      </div>
-
       <div className="space-y-2">
         <Label>Tire Size</Label>
         <div className="grid grid-cols-3 gap-4">
@@ -183,6 +128,61 @@ export function TireFilters({ filters, onFilterChange }: TireFiltersProps) {
         </div>
       </div>
 
+      <div className="space-y-4">
+        <Label>Quick Size Search</Label>
+        <Popover open={open} onOpenChange={setOpen}>
+          <PopoverTrigger asChild>
+            <Button
+              variant="outline"
+              role="combobox"
+              aria-expanded={open}
+              className="w-full justify-between"
+            >
+              {value
+                ? TIRE_SIZES.find((size) => size === value)
+                : "Search tire size..."}
+              <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-full p-0">
+            <Command>
+              <CommandInput placeholder="Search tire size..." value={value} onValueChange={setValue}/>
+              <CommandEmpty>No tire size found.</CommandEmpty>
+              <CommandGroup>
+                {TIRE_SIZES.filter(size => 
+                  !value || size.toLowerCase().includes(value.toLowerCase())
+                ).map((size) => (
+                  <CommandItem
+                    key={size}
+                    value={size}
+                    onSelect={(currentValue) => {
+                      setValue(currentValue);
+                      setOpen(false);
+                      const [width, rest] = currentValue.split('/');
+                      const [aspect, diameter] = rest.split('R');
+                      onFilterChange({
+                        ...filters,
+                        width,
+                        aspect,
+                        diameter
+                      });
+                    }}
+                  >
+                    <Check
+                      className={cn(
+                        "mr-2 h-4 w-4",
+                        value === size ? "opacity-100" : "opacity-0"
+                      )}
+                    />
+                    {size}
+                  </CommandItem>
+                ))}
+              </CommandGroup>
+            </Command>
+          </PopoverContent>
+        </Popover>
+      </div>
+
       <div className="space-y-2">
         <Label>Availability</Label>
         <div className="flex items-center gap-2">
@@ -234,7 +234,6 @@ export function TireFilters({ filters, onFilterChange }: TireFiltersProps) {
 
       <div className="bg-accent/50 p-4 rounded-lg">
         <div className="grid grid-cols-3 gap-8">
-          {/* Fuel Efficiency Column */}
           <div className="space-y-4">
             <div className="flex flex-col items-center">
               <Fuel className="h-8 w-8" />
@@ -258,7 +257,6 @@ export function TireFilters({ filters, onFilterChange }: TireFiltersProps) {
             </div>
           </div>
 
-          {/* Wet Grip Column */}
           <div className="space-y-4">
             <div className="flex flex-col items-center">
               <Waves className="h-8 w-8" />
@@ -282,7 +280,6 @@ export function TireFilters({ filters, onFilterChange }: TireFiltersProps) {
             </div>
           </div>
 
-          {/* Noise Level Column */}
           <div className="space-y-4">
             <div className="flex flex-col items-center">
               <Volume2 className="h-8 w-8" />
