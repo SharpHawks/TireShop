@@ -9,6 +9,7 @@ import Home from "./pages/home";
 import Admin from "./pages/admin";
 import Auth from "./pages/auth";
 import TireForm from "./pages/admin/tire-form";
+import SeasonalTires from "./pages/admin/tires/[season]";
 import NotFound from "./pages/not-found";
 
 function Router() {
@@ -29,6 +30,11 @@ function Router() {
       <ProtectedRoute
         path="/admin/tires/:id/edit"
         component={TireForm}
+        requireAdmin
+      />
+      <ProtectedRoute
+        path="/admin/tires/:season"
+        component={SeasonalTires}
         requireAdmin
       />
       <Route component={NotFound} />
