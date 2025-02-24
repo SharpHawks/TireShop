@@ -36,42 +36,42 @@ export default function TireForm() {
   });
 
   // Initialize form with default values
-  const defaultValues: Partial<InsertTire> = {
-    modelId: modelId ? parseInt(modelId, 10) : undefined,
+  const defaultValues: InsertTire = {
+    modelId: modelId ? parseInt(modelId) : 0,
     inStock: true,
     fuelEfficiency: 'A',
     wetGrip: 'A',
     noiseLevel: 70,
-    price: '0',
+    price: 0,
     size: '',
     code: '',
     imageUrl: '',
+    season: 'summer', // Add a default season
   };
 
   const form = useForm<InsertTire>({
     resolver: zodResolver(insertTireSchema),
     defaultValues: isEditing && tire ? {
       ...tire,
-      price: (tire.price / 100).toString(), // Convert cents to euros for display
+      price: tire.price,
+      modelId: tire.modelId,
     } : defaultValues,
   });
 
   const mutation = useMutation({
     mutationFn: async (data: InsertTire) => {
-      // Convert euros to cents for storage
-      const submitData = {
+      const formattedData: InsertTire = {
         ...data,
-        price: Math.round(parseFloat(data.price) * 100), // Convert string price to number and then to cents
+        modelId: parseInt(modelId || '0'),
+        price: Math.round(parseFloat(data.price.toString())), // Ensure price is a number
       };
-
-      console.log('Submitting tire data:', submitData); // Debug log
 
       const response = await fetch(
         isEditing ? `/api/tires/${id}` : '/api/tires',
         {
           method: isEditing ? 'PATCH' : 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(submitData),
+          body: JSON.stringify(formattedData),
         }
       );
 
@@ -100,17 +100,7 @@ export default function TireForm() {
   });
 
   const onSubmit = (data: InsertTire) => {
-    // Log form data before submission
-    console.log('Form data before submission:', data);
-
-    // Ensure modelId is included
-    const submitData = {
-      ...data,
-      modelId: modelId ? parseInt(modelId, 10) : undefined,
-    };
-
-    console.log('Final submit data:', submitData);
-    mutation.mutate(submitData);
+    mutation.mutate(data);
   };
 
   if (isEditing && isLoading) {
@@ -173,14 +163,14 @@ export default function TireForm() {
               name="price"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Price (in euros)</FormLabel>
+                  <FormLabel>Price</FormLabel>
                   <FormControl>
                     <Input 
-                      {...field} 
-                      type="number" 
-                      min="0" 
-                      step="0.01"
-                      onChange={(e) => field.onChange(e.target.value)}
+                      {...field}
+                      type="number"
+                      min="0"
+                      step="1"
+                      onChange={(e) => field.onChange(parseInt(e.target.value, 10) || 0)}
                     />
                   </FormControl>
                   <FormMessage />
@@ -196,14 +186,40 @@ export default function TireForm() {
                   <FormLabel>Noise Level (dB)</FormLabel>
                   <FormControl>
                     <Input 
-                      {...field} 
-                      type="number" 
-                      min="0" 
-                      max="120" 
+                      {...field}
+                      type="number"
+                      min="0"
+                      max="120"
                       step="1"
-                      onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                      onChange={(e) => field.onChange(parseInt(e.target.value, 10) || 0)}
                     />
                   </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="season"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Season</FormLabel>
+                  <Select
+                    onValueChange={field.onChange}
+                    value={field.value}
+                    defaultValue={field.value}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select season" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="summer">Summer</SelectItem>
+                      <SelectItem value="winter">Winter</SelectItem>
+                    </SelectContent>
+                  </Select>
                   <FormMessage />
                 </FormItem>
               )}
@@ -282,19 +298,6 @@ export default function TireForm() {
                 <FormLabel className="!mt-0">In Stock</FormLabel>
                 <FormMessage />
               </FormItem>
-            )}
-          />
-
-          {/* Hidden modelId field */}
-          <FormField
-            control={form.control}
-            name="modelId"
-            render={({ field }) => (
-              <Input
-                type="hidden"
-                {...field}
-                value={modelId || ''}
-              />
             )}
           />
 
