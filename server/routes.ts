@@ -37,8 +37,12 @@ export async function registerRoutes(app: Express) {
   app.post("/api/recommendations", async (req, res) => {
     try {
       const userPreferences = req.body;
+      console.log('Received preferences:', userPreferences); // Add logging
+
       const availableTires = await storage.getTires({});
       const recommendations = await getTireRecommendations(userPreferences, availableTires);
+
+      console.log('Generated recommendations:', recommendations); // Add logging
       res.json(recommendations);
     } catch (error) {
       console.error('Error getting recommendations:', error);

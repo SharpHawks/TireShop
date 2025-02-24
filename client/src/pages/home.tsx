@@ -45,11 +45,24 @@ export default function Home() {
 
   const { mutate: getRecommendations, data: recommendations, isPending } = useMutation({
     mutationFn: async (preferences: UserPreferences) => {
-      const response = await apiRequest("/api/recommendations", {
-        method: "POST",
-        body: JSON.stringify(preferences),
-      });
-      return response.json();
+      try {
+        const response = await fetch('/api/recommendations', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(preferences),
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to get recommendations');
+        }
+
+        return response.json();
+      } catch (error) {
+        console.error('Error getting recommendations:', error);
+        throw error;
+      }
     },
   });
 
