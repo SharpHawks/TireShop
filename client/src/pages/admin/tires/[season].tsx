@@ -17,8 +17,8 @@ import { TireList } from "@/components/tire-list";
 
 export default function SeasonalTires() {
   const { season } = useParams<{ season: string }>();
-  const [selectedBrand, setSelectedBrand] = useState<string>("");
-  const [selectedModel, setSelectedModel] = useState<string>("");
+  const [selectedBrand, setSelectedBrand] = useState<string>("all");
+  const [selectedModel, setSelectedModel] = useState<string>("all");
 
   const { data: tires = [] } = useQuery<Tire[]>({
     queryKey: ["/api/tires"],
@@ -38,7 +38,7 @@ export default function SeasonalTires() {
 
   // Get models for selected brand
   const models = useMemo(() => {
-    if (!selectedBrand) return [];
+    if (selectedBrand === "all") return [];
     return seasonalTires
       .filter(tire => tire.brand === selectedBrand)
       .map(tire => tire.name)
@@ -48,10 +48,10 @@ export default function SeasonalTires() {
   // Filter tires based on selection
   const filteredTires = useMemo(() => {
     let filtered = seasonalTires;
-    if (selectedBrand) {
+    if (selectedBrand !== "all") {
       filtered = filtered.filter(tire => tire.brand === selectedBrand);
     }
-    if (selectedModel) {
+    if (selectedModel !== "all") {
       filtered = filtered.filter(tire => tire.name === selectedModel);
     }
     return filtered;
@@ -94,7 +94,7 @@ export default function SeasonalTires() {
                 <SelectValue placeholder="Choose a brand" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Brands</SelectItem>
+                <SelectItem value="all">All Brands</SelectItem>
                 {brands.map(brand => (
                   <SelectItem key={brand} value={brand}>
                     {brand}
@@ -111,17 +111,17 @@ export default function SeasonalTires() {
             <Select
               value={selectedModel}
               onValueChange={setSelectedModel}
-              disabled={!selectedBrand}
+              disabled={selectedBrand === "all"}
             >
               <SelectTrigger>
                 <SelectValue placeholder={
-                  selectedBrand 
-                    ? "Choose a model" 
-                    : "Select a brand first"
+                  selectedBrand === "all"
+                    ? "Select a brand first"
+                    : "Choose a model"
                 } />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Models</SelectItem>
+                <SelectItem value="all">All Models</SelectItem>
                 {models.map(model => (
                   <SelectItem key={model} value={model}>
                     {model}
