@@ -62,6 +62,7 @@ export default function TireForm() {
       const submitData = {
         ...data,
         price: Math.round(parseFloat(data.price) * 100), // Convert string price to number and then to cents
+        modelId: modelId ? parseInt(modelId, 10) : undefined,
       };
 
       const response = await fetch(
@@ -163,11 +164,11 @@ export default function TireForm() {
                   <FormLabel>Price (in euros)</FormLabel>
                   <FormControl>
                     <Input 
-                      {...field}
-                      type="number"
-                      min="0"
+                      {...field} 
+                      type="number" 
+                      min="0" 
                       step="0.01"
-                      onChange={(e) => field.onChange(e.target.value)} // Keep as string
+                      onChange={(e) => field.onChange(e.target.value)}
                     />
                   </FormControl>
                   <FormMessage />
@@ -270,14 +271,6 @@ export default function TireForm() {
                 <FormMessage />
               </FormItem>
             )}
-          />
-
-          {/* Hidden modelId field */}
-          <input
-            type="hidden"
-            name="modelId"
-            value={modelId || ''}
-            onChange={() => {}}
           />
 
           <div className="flex gap-4">
