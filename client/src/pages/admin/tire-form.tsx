@@ -39,7 +39,6 @@ export default function TireForm() {
   const defaultValues: Partial<InsertTire> = {
     modelId: modelId ? parseInt(modelId, 10) : undefined,
     inStock: true,
-    season: 'summer',
     fuelEfficiency: 'A',
     wetGrip: 'A',
     noiseLevel: 70,
@@ -52,7 +51,6 @@ export default function TireForm() {
 
   const mutation = useMutation({
     mutationFn: async (data: InsertTire) => {
-      console.log("Submitting data:", data);
       const response = await fetch(
         isEditing ? `/api/tires/${id}` : '/api/tires',
         {
@@ -86,7 +84,6 @@ export default function TireForm() {
   });
 
   const onSubmit = (data: InsertTire) => {
-    console.log("Form submitted with data:", data);
     mutation.mutate(data);
   };
 
@@ -133,32 +130,6 @@ export default function TireForm() {
 
             <FormField
               control={form.control}
-              name="season"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Season</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    value={field.value}
-                    defaultValue={field.value}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select season" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="summer">Summer</SelectItem>
-                      <SelectItem value="winter">Winter</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
               name="imageUrl"
               render={({ field }) => (
                 <FormItem>
@@ -176,9 +147,9 @@ export default function TireForm() {
               name="price"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Price (in cents)</FormLabel>
+                  <FormLabel>Price (in euros)</FormLabel>
                   <FormControl>
-                    <Input {...field} type="number" min="0" step="1" />
+                    <Input {...field} type="number" min="0" step="0.01" />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
