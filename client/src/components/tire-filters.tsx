@@ -75,6 +75,7 @@ export function TireFilters({ filters, onFilterChange }: TireFiltersProps) {
   const [showDropdown, setShowDropdown] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(-1);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const selectedItemRef = useRef<HTMLDivElement>(null);
 
   // Set summer tires as default when filters.season is undefined
   useEffect(() => {
@@ -102,6 +103,16 @@ export function TireFilters({ filters, onFilterChange }: TireFiltersProps) {
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  // Add effect to scroll selected item into view
+  useEffect(() => {
+    if (selectedItemRef.current) {
+      selectedItemRef.current.scrollIntoView({
+        block: 'nearest',
+        behavior: 'smooth'
+      });
+    }
+  }, [selectedIndex]);
 
   const handleSizeSelect = (size: string) => {
     const simpleSize = formatToSimple(size);
@@ -277,6 +288,7 @@ export function TireFilters({ filters, onFilterChange }: TireFiltersProps) {
               filteredSizes.map((size, index) => (
                 <div
                   key={size}
+                  ref={index === selectedIndex ? selectedItemRef : null}
                   className={cn(
                     "px-4 py-2 cursor-pointer",
                     index === selectedIndex ? "bg-accent" : "hover:bg-accent"
