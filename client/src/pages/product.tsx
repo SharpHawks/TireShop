@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { useParams } from "wouter";
+import { useParams, Link } from "wouter";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -13,7 +13,6 @@ import {
   XCircle,
   ArrowLeft,
 } from "lucide-react";
-import { Link } from "wouter";
 import type { Tire } from "@shared/schema";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -72,10 +71,10 @@ export default function Product() {
   return (
     <div className="container mx-auto px-4 py-8">
       <Link href="/">
-        <a className="inline-flex items-center gap-2 text-muted-foreground hover:text-primary mb-8">
+        <div className="inline-flex items-center gap-2 text-muted-foreground hover:text-primary mb-8 cursor-pointer">
           <ArrowLeft className="h-4 w-4" />
           Back to Tires
-        </a>
+        </div>
       </Link>
 
       <div className="grid md:grid-cols-2 gap-8">
@@ -83,7 +82,7 @@ export default function Product() {
           <CardContent className="p-6">
             <img
               src={tire.imageUrl}
-              alt={tire.name}
+              alt={`Tire ${tire.size}`}
               className="w-full aspect-square object-cover rounded-lg"
             />
           </CardContent>
@@ -92,9 +91,8 @@ export default function Product() {
         <div className="space-y-8">
           <div>
             <h1 className="text-3xl font-bold mb-2">
-              {tire.brand} {tire.name}
+              {tire.code} - {tire.size}
             </h1>
-            <p className="text-xl text-muted-foreground">{tire.size}</p>
           </div>
 
           <div className="grid gap-4">
