@@ -11,10 +11,24 @@ export const users = pgTable("users", {
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
-export const tires = pgTable("tires", {
+export const brands = pgTable("brands", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull().unique(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+export const models = pgTable("models", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
-  brand: text("brand").notNull(),
+  brandId: integer("brand_id").notNull().references(() => brands.id),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+export const tires = pgTable("tires", {
+  id: serial("id").primaryKey(),
+  modelId: integer("model_id").notNull().references(() => models.id),
   code: text("code").notNull(), // e.g. 'MFS', 'RSC'
   size: text("size").notNull(), // e.g. '205/55R16'
   season: text("season").notNull(), // 'summer' or 'winter'
@@ -31,10 +45,26 @@ export const tires = pgTable("tires", {
 
 // Relations
 export const tiresRelations = relations(tires, ({ one }) => ({
+  model: one(models, {
+    fields: [tires.modelId],
+    references: [models.id],
+  }),
   createdBy: one(users, {
     fields: [tires.createdById],
     references: [users.id],
   }),
+}));
+
+export const modelsRelations = relations(models, ({ one, many }) => ({
+  brand: one(brands, {
+    fields: [models.brandId],
+    references: [brands.id],
+  }),
+  tires: many(tires),
+}));
+
+export const brandsRelations = relations(brands, ({ many }) => ({
+  models: many(models),
 }));
 
 export const usersRelations = relations(users, ({ many }) => ({
@@ -47,6 +77,18 @@ export const insertUserSchema = createInsertSchema(users)
     password: z.string().min(6, "Password must be at least 6 characters"),
   })
   .omit({ id: true, createdAt: true, isAdmin: true });
+
+export const insertBrandSchema = createInsertSchema(brands).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertModelSchema = createInsertSchema(models).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
 
 export const insertTireSchema = createInsertSchema(tires).omit({ 
   id: true, 
@@ -71,6 +113,10 @@ export const tireFilters = z.object({
 // Types
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
+export type Brand = typeof brands.$inferSelect;
+export type InsertBrand = z.infer<typeof insertBrandSchema>;
+export type Model = typeof models.$inferSelect;
+export type InsertModel = z.infer<typeof insertModelSchema>;
 export type Tire = typeof tires.$inferSelect;
 export type InsertTire = z.infer<typeof insertTireSchema>;
 export type TireFilters = z.infer<typeof tireFilters>;

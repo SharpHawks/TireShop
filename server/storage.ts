@@ -1,6 +1,6 @@
-import type { Tire, InsertTire, TireFilters, User, InsertUser } from "@shared/schema";
-import { tires, users } from "@shared/schema";
-import { eq, like } from "drizzle-orm";
+import type { Tire, InsertTire, TireFilters, User, InsertUser, Brand, InsertBrand, Model, InsertModel } from "@shared/schema";
+import { tires, users, brands, models } from "@shared/schema";
+import { eq, like, and, desc } from "drizzle-orm";
 import { db } from "./db";
 import session from "express-session";
 import connectPg from "connect-pg-simple";
@@ -17,6 +17,20 @@ export interface IStorage {
   getUser(id: number): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
+
+  // Brand operations
+  getBrands(): Promise<Brand[]>;
+  getBrand(id: number): Promise<Brand | undefined>;
+  createBrand(brand: InsertBrand): Promise<Brand>;
+  updateBrand(id: number, brand: Partial<InsertBrand>): Promise<Brand | undefined>;
+  deleteBrand(id: number): Promise<boolean>;
+
+  // Model operations
+  getModels(brandId: number): Promise<Model[]>;
+  getModel(id: number): Promise<Model | undefined>;
+  createModel(model: InsertModel): Promise<Model>;
+  updateModel(id: number, model: Partial<InsertModel>): Promise<Model | undefined>;
+  deleteModel(id: number): Promise<boolean>;
 
   sessionStore: session.Store;
 }
@@ -37,39 +51,33 @@ export class DatabaseStorage implements IStorage {
     let query = db.select().from(tires);
 
     if (filters) {
+      const conditions = [];
+
       // Size filters
       if (filters.width || filters.aspect || filters.diameter) {
-        query = query.where(({ and, like }) => 
-          and(
-            filters.width ? like(tires.size, `${filters.width}/%`) : undefined,
-            filters.aspect ? like(tires.size, `%/${filters.aspect}R%`) : undefined,
-            filters.diameter ? like(tires.size, `%R${filters.diameter}`) : undefined,
-          )
-        );
+        if (filters.width) conditions.push(like(tires.size, `${filters.width}/%`));
+        if (filters.aspect) conditions.push(like(tires.size, `%/${filters.aspect}R%`));
+        if (filters.diameter) conditions.push(like(tires.size, `%R${filters.diameter}`));
       }
 
       // Boolean filters
       if (filters.inStock === true) {
-        query = query.where(eq(tires.inStock, true));
+        conditions.push(eq(tires.inStock, true));
       }
 
       // String filters
-      if (filters.code) {
-        query = query.where(eq(tires.code, filters.code));
-      }
-      if (filters.season) {
-        query = query.where(eq(tires.season, filters.season));
-      }
-      if (filters.fuelEfficiency) {
-        query = query.where(eq(tires.fuelEfficiency, filters.fuelEfficiency));
-      }
-      if (filters.wetGrip) {
-        query = query.where(eq(tires.wetGrip, filters.wetGrip));
-      }
+      if (filters.code) conditions.push(eq(tires.code, filters.code));
+      if (filters.season) conditions.push(eq(tires.season, filters.season));
+      if (filters.fuelEfficiency) conditions.push(eq(tires.fuelEfficiency, filters.fuelEfficiency));
+      if (filters.wetGrip) conditions.push(eq(tires.wetGrip, filters.wetGrip));
 
       // Numeric filters
       if (filters.maxNoiseLevel) {
-        query = query.where(({ lte }) => lte(tires.noiseLevel, filters.maxNoiseLevel!));
+        conditions.push(eq(tires.noiseLevel, filters.maxNoiseLevel));
+      }
+
+      if (conditions.length > 0) {
+        query = query.where(and(...conditions));
       }
     }
 
@@ -112,6 +120,87 @@ export class DatabaseStorage implements IStorage {
     return !!deletedTire;
   }
 
+  // Brand operations
+  async getBrands(): Promise<Brand[]> {
+    return db.select().from(brands).orderBy(desc(brands.name));
+  }
+
+  async getBrand(id: number): Promise<Brand | undefined> {
+    const [brand] = await db.select().from(brands).where(eq(brands.id, id));
+    return brand;
+  }
+
+  async createBrand(brand: InsertBrand): Promise<Brand> {
+    const [newBrand] = await db
+      .insert(brands)
+      .values(brand)
+      .returning();
+    return newBrand;
+  }
+
+  async updateBrand(id: number, brand: Partial<InsertBrand>): Promise<Brand | undefined> {
+    const [updatedBrand] = await db
+      .update(brands)
+      .set({
+        ...brand,
+        updatedAt: new Date(),
+      })
+      .where(eq(brands.id, id))
+      .returning();
+    return updatedBrand;
+  }
+
+  async deleteBrand(id: number): Promise<boolean> {
+    const [deletedBrand] = await db
+      .delete(brands)
+      .where(eq(brands.id, id))
+      .returning();
+    return !!deletedBrand;
+  }
+
+  // Model operations
+  async getModels(brandId: number): Promise<Model[]> {
+    return db
+      .select()
+      .from(models)
+      .where(eq(models.brandId, brandId))
+      .orderBy(desc(models.name));
+  }
+
+  async getModel(id: number): Promise<Model | undefined> {
+    const [model] = await db.select().from(models).where(eq(models.id, id));
+    return model;
+  }
+
+  async createModel(model: InsertModel): Promise<Model> {
+    const [newModel] = await db
+      .insert(models)
+      .values(model)
+      .returning();
+    return newModel;
+  }
+
+  async updateModel(id: number, model: Partial<InsertModel>): Promise<Model | undefined> {
+    const [updatedModel] = await db
+      .update(models)
+      .set({
+        ...model,
+        updatedAt: new Date(),
+      })
+      .where(eq(models.id, id))
+      .returning();
+    return updatedModel;
+  }
+
+  async deleteModel(id: number): Promise<boolean> {
+    const [deletedModel] = await db
+      .delete(models)
+      .where(eq(models.id, id))
+      .returning();
+    return !!deletedModel;
+  }
+
+  // User operations
   async getUser(id: number): Promise<User | undefined> {
     const [user] = await db.select().from(users).where(eq(users.id, id));
     return user;

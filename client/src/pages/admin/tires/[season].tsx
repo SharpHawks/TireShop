@@ -1,6 +1,6 @@
 import { useParams } from "wouter";
 import { useState, useMemo } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import {
   Select,
   SelectContent,
@@ -13,11 +13,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Plus, ArrowLeft, Pencil, Save, Trash2, X } from "lucide-react";
 import { Link } from "wouter";
-import type { Tire } from "@shared/schema";
+import type { Tire, Brand, Model } from "@shared/schema";
 import { TireList } from "@/components/tire-list";
+import { useToast } from "@/hooks/use-toast";
+import { queryClient } from "@/lib/queryClient";
 
 export default function SeasonalTires() {
   const { season } = useParams<{ season: string }>();
+  const { toast } = useToast();
   const [selectedBrand, setSelectedBrand] = useState<string>("all");
   const [selectedModel, setSelectedModel] = useState<string>("all");
   const [isEditingBrand, setIsEditingBrand] = useState(false);
@@ -25,54 +28,129 @@ export default function SeasonalTires() {
   const [newBrandName, setNewBrandName] = useState("");
   const [newModelName, setNewModelName] = useState("");
 
+  // Fetch brands
+  const { data: brands = [] } = useQuery<Brand[]>({
+    queryKey: ["/api/brands"],
+  });
+
+  // Fetch models for selected brand
+  const { data: models = [] } = useQuery<Model[]>({
+    queryKey: ["/api/brands", selectedBrand, "models"],
+    enabled: selectedBrand !== "all",
+  });
+
+  // Fetch tires
   const { data: tires = [] } = useQuery<Tire[]>({
     queryKey: ["/api/tires"],
   });
 
-  // Filter tires by season
-  const seasonalTires = useMemo(() => 
-    tires.filter(tire => tire.season === season),
-    [tires, season]
-  );
-
-  // Get unique brands
-  const brands = useMemo(() => 
-    Array.from(new Set(seasonalTires.map(tire => tire.brand))).sort(),
-    [seasonalTires]
-  );
-
-  // Get models for selected brand
-  const models = useMemo(() => {
-    if (selectedBrand === "all") return [];
-    return Array.from(new Set(
-      seasonalTires
-        .filter(tire => tire.brand === selectedBrand)
-        .map(tire => tire.name)
-    )).sort();
-  }, [selectedBrand, seasonalTires]);
-
-  // Filter tires based on selection
+  // Filter tires based on selection and season
   const filteredTires = useMemo(() => {
-    let filtered = seasonalTires;
+    let filtered = tires.filter(tire => tire.season === season);
     if (selectedBrand !== "all") {
-      filtered = filtered.filter(tire => tire.brand === selectedBrand);
+      filtered = filtered.filter(tire => 
+        models.some(model => 
+          model.brandId === Number(selectedBrand) && model.id === tire.modelId
+        )
+      );
     }
     if (selectedModel !== "all") {
-      filtered = filtered.filter(tire => tire.name === selectedModel);
+      filtered = filtered.filter(tire => tire.modelId === Number(selectedModel));
     }
     return filtered;
-  }, [seasonalTires, selectedBrand, selectedModel]);
+  }, [tires, season, selectedBrand, selectedModel, models]);
+
+  // Brand mutations
+  const createBrandMutation = useMutation({
+    mutationFn: async (name: string) => {
+      const response = await fetch("/api/brands", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name }),
+      });
+      if (!response.ok) throw new Error("Failed to create brand");
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/brands"] });
+      setIsEditingBrand(false);
+      setNewBrandName("");
+      toast({
+        title: "Success",
+        description: "Brand created successfully",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Model mutations
+  const createModelMutation = useMutation({
+    mutationFn: async ({ name, brandId }: { name: string; brandId: number }) => {
+      const response = await fetch("/api/models", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, brandId }),
+      });
+      if (!response.ok) throw new Error("Failed to create model");
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/brands", selectedBrand, "models"] });
+      setIsEditingModel(false);
+      setNewModelName("");
+      toast({
+        title: "Success",
+        description: "Model created successfully",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
 
   const handleSaveBrand = () => {
-    // TODO: Implement brand save logic
-    setIsEditingBrand(false);
-    setNewBrandName("");
+    if (!newBrandName.trim()) {
+      toast({
+        title: "Error",
+        description: "Brand name cannot be empty",
+        variant: "destructive",
+      });
+      return;
+    }
+    createBrandMutation.mutate(newBrandName);
   };
 
   const handleSaveModel = () => {
-    // TODO: Implement model save logic
-    setIsEditingModel(false);
-    setNewModelName("");
+    if (!newModelName.trim()) {
+      toast({
+        title: "Error",
+        description: "Model name cannot be empty",
+        variant: "destructive",
+      });
+      return;
+    }
+    if (selectedBrand === "all") {
+      toast({
+        title: "Error",
+        description: "Please select a brand first",
+        variant: "destructive",
+      });
+      return;
+    }
+    createModelMutation.mutate({
+      name: newModelName,
+      brandId: Number(selectedBrand),
+    });
   };
 
   return (
@@ -118,6 +196,7 @@ export default function SeasonalTires() {
                       variant="default"
                       size="sm"
                       onClick={handleSaveBrand}
+                      disabled={createBrandMutation.isPending}
                     >
                       <Save className="h-4 w-4" />
                     </Button>
@@ -166,8 +245,8 @@ export default function SeasonalTires() {
                 <SelectContent>
                   <SelectItem value="all">All Brands</SelectItem>
                   {brands.map(brand => (
-                    <SelectItem key={brand} value={brand}>
-                      {brand}
+                    <SelectItem key={brand.id} value={brand.id.toString()}>
+                      {brand.name}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -193,6 +272,7 @@ export default function SeasonalTires() {
                       variant="default"
                       size="sm"
                       onClick={handleSaveModel}
+                      disabled={createModelMutation.isPending}
                     >
                       <Save className="h-4 w-4" />
                     </Button>
@@ -248,8 +328,8 @@ export default function SeasonalTires() {
                 <SelectContent>
                   <SelectItem value="all">All Models</SelectItem>
                   {models.map(model => (
-                    <SelectItem key={model} value={model}>
-                      {model}
+                    <SelectItem key={model.id} value={model.id.toString()}>
+                      {model.name}
                     </SelectItem>
                   ))}
                 </SelectContent>
