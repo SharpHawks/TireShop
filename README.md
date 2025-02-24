@@ -76,3 +76,34 @@ The application will start on http://0.0.0.0:5000
 - Database: Neon Postgres
 - ORM: Drizzle
 - UI Components: Shadcn/ui
+
+## Environment Variables
+
+The application requires the following environment variables:
+
+```
+DATABASE_URL=your_neon_database_url
+SESSION_SECRET=your_session_secret
+```
+
+Make sure to set these in your `.env` file before starting the application.
+
+## Testing
+
+Run the test suite:
+
+```bash
+npm run test
+```
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## License
+
+This project is licensed under the MIT License.
