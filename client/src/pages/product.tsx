@@ -68,6 +68,14 @@ export default function Product() {
     return <ProductSkeleton />;
   }
 
+  // Format price from cents to dollars with proper decimal places
+  const formattedPrice = (tire.price / 100).toLocaleString('en-US', {
+    style: 'currency',
+    currency: 'USD',
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  });
+
   return (
     <div className="container mx-auto px-4 py-8">
       <Link href="/">
@@ -133,7 +141,7 @@ export default function Product() {
           <div className="space-y-4">
             <div className="flex items-baseline justify-between">
               <span className="text-3xl font-bold">
-                ${(tire.price / 100).toFixed(2)}
+                {formattedPrice}
               </span>
               <span className="text-sm text-muted-foreground">
                 Price per tire

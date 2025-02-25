@@ -66,7 +66,8 @@ export default function TireForm() {
       const formattedData = {
         ...data,
         modelId: modelId ? parseInt(modelId) : data.modelId,
-        price: Math.round(parseFloat(data.price) * 100).toString(), // Convert dollars to cents
+        // Convert the price from dollars to cents when sending to server
+        price: (parseFloat(data.price) * 100).toFixed(0),
       };
 
       const response = await fetch(

@@ -147,7 +147,14 @@ Noise Level: ${tire.noiseLevel}dB`;
             <TableRow key={tire.id}>
               <TableCell>{getModelName(tire.modelId)}</TableCell>
               <TableCell>{tire.size}</TableCell>
-              <TableCell>${(tire.price / 100).toFixed(2)}</TableCell>
+              <TableCell>
+                {(tire.price / 100).toLocaleString('en-US', {
+                  style: 'currency',
+                  currency: 'USD',
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2
+                })}
+              </TableCell>
               <TableCell>
                 {tire.inStock ? (
                   <CheckCircle className="h-5 w-5 text-green-500" />
