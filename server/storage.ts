@@ -3,9 +3,15 @@ import { tires, users, brands, models } from "@shared/schema";
 import { eq, like, and, desc } from "drizzle-orm";
 import { db } from "./db";
 import session from "express-session";
-import connectPg from "connect-pg-simple";
+import mysql from "connect-mysql";
 
-const PostgresSessionStore = connectPg(session);
+const MySQLStore = mysql(session);
+
+// Parse DATABASE_URL for session store
+const dbUrl = new URL(process.env.DATABASE_URL);
+const [username, password] = (dbUrl.username && dbUrl.password) 
+  ? [dbUrl.username, dbUrl.password] 
+  : [undefined, undefined];
 
 export interface IStorage {
   getTires(filters?: TireFilters): Promise<Tire[]>;
@@ -39,11 +45,17 @@ export class DatabaseStorage implements IStorage {
   sessionStore: session.Store;
 
   constructor() {
-    this.sessionStore = new PostgresSessionStore({
-      conObject: {
-        connectionString: process.env.DATABASE_URL,
-      },
-      createTableIfMissing: true,
+    this.sessionStore = new MySQLStore({
+      config: {
+        host: dbUrl.hostname,
+        port: parseInt(dbUrl.port || '3306'),
+        user: username,
+        password: password,
+        database: dbUrl.pathname.substring(1),
+        ssl: {
+          rejectUnauthorized: false
+        }
+      }
     });
   }
 
@@ -90,7 +102,8 @@ export class DatabaseStorage implements IStorage {
       }
     }
 
-    return await query;
+    const result = await query;
+    return result as Tire[];
   }
 
   async getTire(id: number): Promise<Tire | undefined> {
@@ -105,7 +118,7 @@ export class DatabaseStorage implements IStorage {
         ...tire,
         createdById: userId,
       })
-      .returning();
+      .$forceReturnType<Tire[]>();
     return newTire;
   }
 
@@ -117,7 +130,7 @@ export class DatabaseStorage implements IStorage {
         updatedAt: new Date(),
       })
       .where(eq(tires.id, id))
-      .returning();
+      .$forceReturnType<Tire[]>();
     return updatedTire;
   }
 
@@ -125,7 +138,7 @@ export class DatabaseStorage implements IStorage {
     const [deletedTire] = await db
       .delete(tires)
       .where(eq(tires.id, id))
-      .returning();
+      .$forceReturnType<Tire[]>();
     return !!deletedTire;
   }
 
@@ -143,7 +156,7 @@ export class DatabaseStorage implements IStorage {
     const [newBrand] = await db
       .insert(brands)
       .values(brand)
-      .returning();
+      .$forceReturnType<Brand[]>();
     return newBrand;
   }
 
@@ -155,7 +168,7 @@ export class DatabaseStorage implements IStorage {
         updatedAt: new Date(),
       })
       .where(eq(brands.id, id))
-      .returning();
+      .$forceReturnType<Brand[]>();
     return updatedBrand;
   }
 
@@ -163,7 +176,7 @@ export class DatabaseStorage implements IStorage {
     const [deletedBrand] = await db
       .delete(brands)
       .where(eq(brands.id, id))
-      .returning();
+      .$forceReturnType<Brand[]>();
     return !!deletedBrand;
   }
 
@@ -187,7 +200,7 @@ export class DatabaseStorage implements IStorage {
     const [newModel] = await db
       .insert(models)
       .values(model)
-      .returning();
+      .$forceReturnType<Model[]>();
     return newModel;
   }
 
@@ -199,7 +212,7 @@ export class DatabaseStorage implements IStorage {
         updatedAt: new Date(),
       })
       .where(eq(models.id, id))
-      .returning();
+      .$forceReturnType<Model[]>();
     return updatedModel;
   }
 
@@ -207,7 +220,7 @@ export class DatabaseStorage implements IStorage {
     const [deletedModel] = await db
       .delete(models)
       .where(eq(models.id, id))
-      .returning();
+      .$forceReturnType<Model[]>();
     return !!deletedModel;
   }
 
@@ -226,7 +239,7 @@ export class DatabaseStorage implements IStorage {
     const [newUser] = await db
       .insert(users)
       .values(user)
-      .returning();
+      .$forceReturnType<User[]>();
     return newUser;
   }
 }
