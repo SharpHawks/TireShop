@@ -81,7 +81,7 @@ export async function registerRoutes(app: Express) {
     }
   });
 
-  // Add the new route handler for fetching all models
+  // Model management routes
   app.get("/api/models", async (req, res) => {
     try {
       const models = await storage.getModels();
@@ -92,7 +92,6 @@ export async function registerRoutes(app: Express) {
     }
   });
 
-  // Model management routes
   app.get("/api/brands/:brandId/models", async (req, res) => {
     try {
       const brandId = parseInt(req.params.brandId);
@@ -152,12 +151,10 @@ export async function registerRoutes(app: Express) {
   // Public tire routes
   app.get("/api/tires", async (req, res) => {
     try {
-      const queryParams = { ...req.query };
-      if (queryParams.inStock !== undefined) {
-        queryParams.inStock = queryParams.inStock === 'true';
-      }
-
-      const filters = tireFilters.parse(queryParams);
+      const filters = tireFilters.parse({
+        ...req.query,
+        inStock: req.query.inStock === 'true'
+      });
       const tires = await storage.getTires(filters);
       res.json(tires);
     } catch (error) {
@@ -182,7 +179,11 @@ export async function registerRoutes(app: Express) {
   app.post("/api/tires", requireAdmin, async (req, res) => {
     try {
       const tireData = insertTireSchema.parse(req.body);
-      const tire = await storage.createTire(tireData, req.user?.id);
+      if (!req.user?.id) {
+        res.status(401).json({ error: 'User not authenticated' });
+        return;
+      }
+      const tire = await storage.createTire(tireData, req.user.id);
       res.status(201).json(tire);
     } catch (error) {
       console.error('Error creating tire:', error);

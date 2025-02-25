@@ -1,4 +1,4 @@
-import { Pool } from '@neondatabase/serverless';
+import { Pool } from 'mysql2/promise';
 import { log } from '../vite';
 
 export interface DatabaseHealth {
@@ -14,7 +14,7 @@ export interface DatabaseHealth {
 export class DatabaseHealthMonitor {
   private pool: Pool;
   private lastHealth: DatabaseHealth | null = null;
-  private checkInterval: NodeJS.Timer | null = null;
+  private checkInterval: NodeJS.Timeout | null = null;
 
   constructor(pool: Pool) {
     this.pool = pool;
@@ -60,16 +60,32 @@ export class DatabaseHealthMonitor {
 
   private async getPoolStats() {
     const stats = {
-      totalCount: this.pool.totalCount,
-      waitingCount: this.pool.waitingCount,
-      activeCount: this.pool.idleCount,
+      totalCount: 10, // Default pool size for MySQL
+      waitingCount: 0,
+      activeCount: 0,
     };
+
+    try {
+      const [rows] = await this.pool.query('SHOW STATUS LIKE "Threads_%"');
+      const statusRows = rows as Array<{ Variable_name: string; Value: string }>;
+
+      for (const row of statusRows) {
+        if (row.Variable_name === 'Threads_connected') {
+          stats.activeCount = parseInt(row.Value);
+        } else if (row.Variable_name === 'Threads_running') {
+          stats.waitingCount = parseInt(row.Value);
+        }
+      }
+    } catch (error) {
+      log(`Error getting pool stats: ${error}`, 'health');
+    }
+
     return stats;
   }
 
   startMonitoring(intervalMs: number = 30000) {
     if (this.checkInterval) {
-      clearInterval(this.checkInterval);
+      clearTimeout(this.checkInterval);
     }
 
     this.checkInterval = setInterval(async () => {
@@ -88,7 +104,7 @@ export class DatabaseHealthMonitor {
 
   stopMonitoring() {
     if (this.checkInterval) {
-      clearInterval(this.checkInterval);
+      clearTimeout(this.checkInterval);
       this.checkInterval = null;
     }
   }

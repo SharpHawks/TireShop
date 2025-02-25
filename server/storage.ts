@@ -3,9 +3,15 @@ import { tires, users, brands, models } from "@shared/schema";
 import { eq, like, and, desc } from "drizzle-orm";
 import { db } from "./db";
 import session from "express-session";
-import pgSession from "connect-pg-simple";
+import mysql from "connect-mysql";
 
-const PostgresStore = pgSession(session);
+const MySQLStore = mysql(session);
+
+// Parse DATABASE_URL for session store
+const dbUrl = new URL(process.env.DATABASE_URL || '');
+const [username, password] = (dbUrl.username && dbUrl.password) 
+  ? [decodeURIComponent(dbUrl.username), decodeURIComponent(dbUrl.password)] 
+  : [undefined, undefined];
 
 export interface IStorage {
   getTires(filters?: TireFilters): Promise<Tire[]>;
@@ -18,14 +24,12 @@ export interface IStorage {
   getUserByUsername(username: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
 
-  // Brand operations
   getBrands(): Promise<Brand[]>;
   getBrand(id: number): Promise<Brand | undefined>;
   createBrand(brand: InsertBrand): Promise<Brand>;
   updateBrand(id: number, brand: Partial<InsertBrand>): Promise<Brand | undefined>;
   deleteBrand(id: number): Promise<boolean>;
 
-  // Model operations
   getModels(brandId?: number): Promise<Model[]>;
   getModel(id: number): Promise<Model | undefined>;
   createModel(model: InsertModel): Promise<Model>;
@@ -39,14 +43,17 @@ export class DatabaseStorage implements IStorage {
   sessionStore: session.Store;
 
   constructor() {
-    this.sessionStore = new PostgresStore({
-      conObject: {
-        connectionString: process.env.DATABASE_URL,
+    this.sessionStore = new MySQLStore({
+      config: {
+        host: dbUrl.hostname,
+        port: parseInt(dbUrl.port || '3306'),
+        user: username,
+        password: password,
+        database: dbUrl.pathname.substring(1),
         ssl: {
           rejectUnauthorized: false
         }
-      },
-      createTableIfMissing: true,
+      }
     });
   }
 
@@ -57,29 +64,24 @@ export class DatabaseStorage implements IStorage {
     if (filters) {
       const conditions = [];
 
-      // Size filters
       if (filters.width || filters.aspect || filters.diameter) {
         if (filters.width) conditions.push(like(tires.size, `${filters.width}/%`));
         if (filters.aspect) conditions.push(like(tires.size, `%/${filters.aspect}R%`));
         if (filters.diameter) conditions.push(like(tires.size, `%R${filters.diameter}`));
       }
 
-      // Boolean filters
-      if (filters.inStock === true) {
-        conditions.push(eq(tires.inStock, true));
+      if (filters.inStock !== undefined) {
+        conditions.push(eq(tires.inStock, filters.inStock));
       }
 
-      // String filters
       if (filters.code) conditions.push(eq(tires.code, filters.code));
       if (filters.fuelEfficiency) conditions.push(eq(tires.fuelEfficiency, filters.fuelEfficiency));
       if (filters.wetGrip) conditions.push(eq(tires.wetGrip, filters.wetGrip));
 
-      // Model season filter
       if (filters.modelSeason) {
         conditions.push(eq(models.season, filters.modelSeason));
       }
 
-      // Numeric filters
       if (filters.maxNoiseLevel) {
         conditions.push(eq(tires.noiseLevel, filters.maxNoiseLevel));
       }
@@ -89,7 +91,11 @@ export class DatabaseStorage implements IStorage {
       }
     }
 
-    return await query;
+    const result = await query;
+    return result.map(row => ({
+      ...row.tires,
+      modelSeason: row.models?.season
+    })) as Tire[];
   }
 
   async getTire(id: number): Promise<Tire | undefined> {
@@ -103,9 +109,8 @@ export class DatabaseStorage implements IStorage {
       .values({
         ...tire,
         createdById: userId,
-      })
-      .returning();
-    return newTire;
+      });
+    return newTire as Tire;
   }
 
   async updateTire(id: number, tire: Partial<InsertTire>): Promise<Tire | undefined> {
@@ -115,17 +120,15 @@ export class DatabaseStorage implements IStorage {
         ...tire,
         updatedAt: new Date(),
       })
-      .where(eq(tires.id, id))
-      .returning();
-    return updatedTire;
+      .where(eq(tires.id, id));
+    return updatedTire as Tire;
   }
 
   async deleteTire(id: number): Promise<boolean> {
-    const [deletedTire] = await db
+    const result = await db
       .delete(tires)
-      .where(eq(tires.id, id))
-      .returning();
-    return !!deletedTire;
+      .where(eq(tires.id, id));
+    return result.length > 0;
   }
 
   async getBrands(): Promise<Brand[]> {
@@ -140,9 +143,8 @@ export class DatabaseStorage implements IStorage {
   async createBrand(brand: InsertBrand): Promise<Brand> {
     const [newBrand] = await db
       .insert(brands)
-      .values(brand)
-      .returning();
-    return newBrand;
+      .values(brand);
+    return newBrand as Brand;
   }
 
   async updateBrand(id: number, brand: Partial<InsertBrand>): Promise<Brand | undefined> {
@@ -152,17 +154,15 @@ export class DatabaseStorage implements IStorage {
         ...brand,
         updatedAt: new Date(),
       })
-      .where(eq(brands.id, id))
-      .returning();
-    return updatedBrand;
+      .where(eq(brands.id, id));
+    return updatedBrand as Brand;
   }
 
   async deleteBrand(id: number): Promise<boolean> {
-    const [deletedBrand] = await db
+    const result = await db
       .delete(brands)
-      .where(eq(brands.id, id))
-      .returning();
-    return !!deletedBrand;
+      .where(eq(brands.id, id));
+    return result.length > 0;
   }
 
   async getModels(brandId?: number): Promise<Model[]> {
@@ -183,9 +183,8 @@ export class DatabaseStorage implements IStorage {
   async createModel(model: InsertModel): Promise<Model> {
     const [newModel] = await db
       .insert(models)
-      .values(model)
-      .returning();
-    return newModel;
+      .values(model);
+    return newModel as Model;
   }
 
   async updateModel(id: number, model: Partial<InsertModel>): Promise<Model | undefined> {
@@ -195,17 +194,15 @@ export class DatabaseStorage implements IStorage {
         ...model,
         updatedAt: new Date(),
       })
-      .where(eq(models.id, id))
-      .returning();
-    return updatedModel;
+      .where(eq(models.id, id));
+    return updatedModel as Model;
   }
 
   async deleteModel(id: number): Promise<boolean> {
-    const [deletedModel] = await db
+    const result = await db
       .delete(models)
-      .where(eq(models.id, id))
-      .returning();
-    return !!deletedModel;
+      .where(eq(models.id, id));
+    return result.length > 0;
   }
 
   async getUser(id: number): Promise<User | undefined> {
@@ -221,9 +218,8 @@ export class DatabaseStorage implements IStorage {
   async createUser(user: InsertUser): Promise<User> {
     const [newUser] = await db
       .insert(users)
-      .values(user)
-      .returning();
-    return newUser;
+      .values(user);
+    return newUser as User;
   }
 }
 
