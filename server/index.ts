@@ -2,6 +2,16 @@ import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 
+// Add error handling for uncaught exceptions and unhandled rejections
+process.on('uncaughtException', (error) => {
+  console.error('Uncaught Exception:', error);
+  process.exit(1);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+});
+
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
@@ -38,7 +48,10 @@ app.use((req, res, next) => {
 
 (async () => {
   try {
+    log('Starting server initialization...');
+
     const server = await registerRoutes(app);
+    log('Routes registered successfully');
 
     // Global error handler
     app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
@@ -50,8 +63,11 @@ app.use((req, res, next) => {
 
     // Setup vite in development
     if (app.get("env") === "development") {
+      log('Setting up Vite development server...');
       await setupVite(app, server);
+      log('Vite development server setup complete');
     } else {
+      log('Setting up static file serving...');
       serveStatic(app);
     }
 

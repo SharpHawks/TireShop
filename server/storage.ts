@@ -3,15 +3,9 @@ import { tires, users, brands, models } from "@shared/schema";
 import { eq, like, and, desc } from "drizzle-orm";
 import { db } from "./db";
 import session from "express-session";
-import mysql from "connect-mysql";
+import pgSession from "connect-pg-simple";
 
-const MySQLStore = mysql(session);
-
-// Parse DATABASE_URL for session store
-const dbUrl = new URL(process.env.DATABASE_URL);
-const [username, password] = (dbUrl.username && dbUrl.password) 
-  ? [dbUrl.username, dbUrl.password] 
-  : [undefined, undefined];
+const PostgresStore = pgSession(session);
 
 export interface IStorage {
   getTires(filters?: TireFilters): Promise<Tire[]>;
@@ -45,27 +39,20 @@ export class DatabaseStorage implements IStorage {
   sessionStore: session.Store;
 
   constructor() {
-    this.sessionStore = new MySQLStore({
-      config: {
-        host: dbUrl.hostname,
-        port: parseInt(dbUrl.port || '3306'),
-        user: username,
-        password: password,
-        database: dbUrl.pathname.substring(1),
+    this.sessionStore = new PostgresStore({
+      conObject: {
+        connectionString: process.env.DATABASE_URL,
         ssl: {
           rejectUnauthorized: false
         }
-      }
+      },
+      createTableIfMissing: true,
     });
   }
 
   async getTires(filters?: TireFilters): Promise<Tire[]> {
-    let query = db.select({
-      ...tires,
-      modelSeason: models.season,
-    })
-    .from(tires)
-    .leftJoin(models, eq(tires.modelId, models.id));
+    let query = db.select().from(tires)
+      .leftJoin(models, eq(tires.modelId, models.id));
 
     if (filters) {
       const conditions = [];
@@ -102,8 +89,7 @@ export class DatabaseStorage implements IStorage {
       }
     }
 
-    const result = await query;
-    return result as Tire[];
+    return await query;
   }
 
   async getTire(id: number): Promise<Tire | undefined> {
@@ -118,7 +104,7 @@ export class DatabaseStorage implements IStorage {
         ...tire,
         createdById: userId,
       })
-      .$forceReturnType<Tire[]>();
+      .returning();
     return newTire;
   }
 
@@ -130,7 +116,7 @@ export class DatabaseStorage implements IStorage {
         updatedAt: new Date(),
       })
       .where(eq(tires.id, id))
-      .$forceReturnType<Tire[]>();
+      .returning();
     return updatedTire;
   }
 
@@ -138,11 +124,10 @@ export class DatabaseStorage implements IStorage {
     const [deletedTire] = await db
       .delete(tires)
       .where(eq(tires.id, id))
-      .$forceReturnType<Tire[]>();
+      .returning();
     return !!deletedTire;
   }
 
-  // Brand operations
   async getBrands(): Promise<Brand[]> {
     return db.select().from(brands).orderBy(desc(brands.name));
   }
@@ -156,7 +141,7 @@ export class DatabaseStorage implements IStorage {
     const [newBrand] = await db
       .insert(brands)
       .values(brand)
-      .$forceReturnType<Brand[]>();
+      .returning();
     return newBrand;
   }
 
@@ -168,7 +153,7 @@ export class DatabaseStorage implements IStorage {
         updatedAt: new Date(),
       })
       .where(eq(brands.id, id))
-      .$forceReturnType<Brand[]>();
+      .returning();
     return updatedBrand;
   }
 
@@ -176,11 +161,10 @@ export class DatabaseStorage implements IStorage {
     const [deletedBrand] = await db
       .delete(brands)
       .where(eq(brands.id, id))
-      .$forceReturnType<Brand[]>();
+      .returning();
     return !!deletedBrand;
   }
 
-  // Model operations
   async getModels(brandId?: number): Promise<Model[]> {
     let query = db.select().from(models).orderBy(desc(models.name));
 
@@ -200,7 +184,7 @@ export class DatabaseStorage implements IStorage {
     const [newModel] = await db
       .insert(models)
       .values(model)
-      .$forceReturnType<Model[]>();
+      .returning();
     return newModel;
   }
 
@@ -212,7 +196,7 @@ export class DatabaseStorage implements IStorage {
         updatedAt: new Date(),
       })
       .where(eq(models.id, id))
-      .$forceReturnType<Model[]>();
+      .returning();
     return updatedModel;
   }
 
@@ -220,11 +204,10 @@ export class DatabaseStorage implements IStorage {
     const [deletedModel] = await db
       .delete(models)
       .where(eq(models.id, id))
-      .$forceReturnType<Model[]>();
+      .returning();
     return !!deletedModel;
   }
 
-  // User operations
   async getUser(id: number): Promise<User | undefined> {
     const [user] = await db.select().from(users).where(eq(users.id, id));
     return user;
@@ -239,7 +222,7 @@ export class DatabaseStorage implements IStorage {
     const [newUser] = await db
       .insert(users)
       .values(user)
-      .$forceReturnType<User[]>();
+      .returning();
     return newUser;
   }
 }

@@ -1,5 +1,5 @@
-import { createPool } from 'mysql2/promise';
-import { drizzle } from 'drizzle-orm/mysql2';
+import pg from 'pg';
+import { drizzle } from 'drizzle-orm/node-postgres';
 import * as schema from "@shared/schema";
 import { initializeHealthMonitoring } from './services/health';
 import { log } from './vite';
@@ -10,18 +10,9 @@ if (!process.env.DATABASE_URL) {
   );
 }
 
-// Parse DATABASE_URL to extract MySQL connection details
-const dbUrl = new URL(process.env.DATABASE_URL);
-const [username, password] = (dbUrl.username && dbUrl.password) 
-  ? [dbUrl.username, dbUrl.password] 
-  : [undefined, undefined];
-
-export const pool = createPool({
-  host: dbUrl.hostname,
-  port: parseInt(dbUrl.port || '3306'),
-  user: username,
-  password: password,
-  database: dbUrl.pathname.substring(1), // Remove leading '/'
+const { Pool } = pg;
+export const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
   ssl: {
     rejectUnauthorized: false
   }
@@ -31,4 +22,4 @@ export const pool = createPool({
 initializeHealthMonitoring(pool);
 log('Database health monitoring initialized', 'database');
 
-export const db = drizzle(pool, { schema, mode: 'default' });
+export const db = drizzle(pool, { schema });

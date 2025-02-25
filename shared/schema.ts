@@ -1,49 +1,49 @@
-import { mysqlTable, varchar, int, boolean, timestamp, primaryKey } from "drizzle-orm/mysql-core";
+import { pgTable, text, serial, integer, boolean, timestamp } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 import { relations } from "drizzle-orm";
 
-export const users = mysqlTable("users", {
-  id: int("id").primaryKey().autoincrement(),
-  username: varchar("username", { length: 255 }).notNull().unique(),
-  password: varchar("password", { length: 255 }).notNull(),
+export const users = pgTable("users", {
+  id: serial("id").primaryKey(),
+  username: text("username").notNull().unique(),
+  password: text("password").notNull(),
   isAdmin: boolean("is_admin").notNull().default(false),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
-export const brands = mysqlTable("brands", {
-  id: int("id").primaryKey().autoincrement(),
-  name: varchar("name", { length: 255 }).notNull().unique(),
+export const brands = pgTable("brands", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull().unique(),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 
-export const models = mysqlTable("models", {
-  id: int("id").primaryKey().autoincrement(),
-  name: varchar("name", { length: 255 }).notNull(),
-  brandId: int("brand_id").notNull().references(() => brands.id),
-  season: int("season").notNull(), // 1 for summer, 2 for winter
+export const models = pgTable("models", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  brandId: integer("brand_id").notNull().references(() => brands.id),
+  season: integer("season").notNull(), // 1 for summer, 2 for winter
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 
-export const tires = mysqlTable("tires", {
-  id: int("id").primaryKey().autoincrement(),
-  modelId: int("model_id").notNull().references(() => models.id),
-  code: varchar("code", { length: 50 }).notNull(), // e.g. 'MFS', 'RSC'
-  size: varchar("size", { length: 50 }).notNull(), // e.g. '205/55R16'
-  fuelEfficiency: varchar("fuel_efficiency", { length: 1 }).notNull(), // A to G rating
-  wetGrip: varchar("wet_grip", { length: 1 }).notNull(), // A to G rating
-  noiseLevel: int("noise_level").notNull(), // in decibels
-  price: int("price").notNull(), // in cents
+export const tires = pgTable("tires", {
+  id: serial("id").primaryKey(),
+  modelId: integer("model_id").notNull().references(() => models.id),
+  code: text("code").notNull(), // e.g. 'MFS', 'RSC'
+  size: text("size").notNull(), // e.g. '205/55R16'
+  fuelEfficiency: text("fuel_efficiency").notNull(), // A to G rating
+  wetGrip: text("wet_grip").notNull(), // A to G rating
+  noiseLevel: integer("noise_level").notNull(), // in decibels
+  price: integer("price").notNull(), // in cents
   inStock: boolean("in_stock").notNull(),
-  imageUrl: varchar("image_url", { length: 255 }).notNull(),
+  imageUrl: text("image_url").notNull(),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
-  createdById: int("created_by_id").references(() => users.id),
+  createdById: integer("created_by_id").references(() => users.id),
 });
 
-// Relations remain the same as they're database-agnostic
+// Relations
 export const tiresRelations = relations(tires, ({ one }) => ({
   model: one(models, {
     fields: [tires.modelId],
@@ -71,7 +71,7 @@ export const usersRelations = relations(users, ({ many }) => ({
   tires: many(tires),
 }));
 
-// Schemas for insert operations remain the same as they're database-agnostic
+// Schemas for insert operations
 export const insertUserSchema = createInsertSchema(users)
   .extend({
     password: z.string().min(6, "Password must be at least 6 characters"),
@@ -106,7 +106,7 @@ export const insertTireSchema = createInsertSchema(tires)
     createdById: true,
   });
 
-// Filter schema remains the same
+// Filter schema
 export const tireFilters = z.object({
   width: z.string().optional(),
   aspect: z.string().optional(),
@@ -119,7 +119,7 @@ export const tireFilters = z.object({
   maxNoiseLevel: z.number().optional(),
 });
 
-// Types remain the same
+// Types
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type Brand = typeof brands.$inferSelect;
