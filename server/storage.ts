@@ -131,6 +131,23 @@ export class DatabaseStorage implements IStorage {
     return result.length > 0;
   }
 
+  async getUser(id: number): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.id, id));
+    return user;
+  }
+
+  async getUserByUsername(username: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.username, username));
+    return user;
+  }
+
+  async createUser(user: InsertUser): Promise<User> {
+    const [newUser] = await db
+      .insert(users)
+      .values(user);
+    return newUser as User;
+  }
+
   async getBrands(): Promise<Brand[]> {
     return db.select().from(brands).orderBy(desc(brands.name));
   }
@@ -203,23 +220,6 @@ export class DatabaseStorage implements IStorage {
       .delete(models)
       .where(eq(models.id, id));
     return result.length > 0;
-  }
-
-  async getUser(id: number): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.id, id));
-    return user;
-  }
-
-  async getUserByUsername(username: string): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.username, username));
-    return user;
-  }
-
-  async createUser(user: InsertUser): Promise<User> {
-    const [newUser] = await db
-      .insert(users)
-      .values(user);
-    return newUser as User;
   }
 }
 

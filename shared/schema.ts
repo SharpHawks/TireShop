@@ -71,7 +71,7 @@ export const usersRelations = relations(users, ({ many }) => ({
   tires: many(tires),
 }));
 
-// Insert schemas remain the same since they're database-agnostic
+// Insert schemas
 export const insertUserSchema = createInsertSchema(users)
   .extend({
     password: z.string().min(6, "Password must be at least 6 characters"),
